@@ -1,4 +1,4 @@
-import { Link, Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   Card,
   CardContent,
@@ -29,7 +29,7 @@ export const AdCard = ({ ad }: AdCardProps) => {
   const formattedDate = new Date(ad.createdAt).toLocaleDateString();
 
   return (
-    <Link to={`/item/${ad.id}`}>
+    <RouterLink to={`/item/${ad.id}`}>
       <Card
         sx={{
           display: 'flex',
@@ -81,6 +81,6 @@ export const AdCard = ({ ad }: AdCardProps) => {
           </Button>
         </Box>
       </Card>
-    </Link>
+    </RouterLink>
   );
 };

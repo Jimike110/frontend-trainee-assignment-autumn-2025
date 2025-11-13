@@ -71,3 +71,27 @@ interface ModerationHistory {
   comment: Comment;
   timestamp: string;
 }
+
+export interface Pagination {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+}
+
+export interface AdsResponse {
+  ads: Ad[];
+  pagination: Pagination;
+}
+
+export interface GetAdsParams {
+  page?: number;
+  limit?: number;
+  status?: Status;
+  categoryId?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  search?: string;
+  sortBy?: 'priority' | 'price' | 'createdAt';
+  sortOrder?: 'asc' | 'desc';
+}

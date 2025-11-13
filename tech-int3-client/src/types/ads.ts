@@ -7,7 +7,7 @@ export type Category =
   | 'Животные'
   | 'Мода'
   | 'Детское';
-type Status = 'pending' | 'approved' | 'rejected';
+export type Status = 'pending' | 'approved' | 'rejected';
 type Priority = 'normal' | 'urgent';
 type Состояние =
   | 'Новое'

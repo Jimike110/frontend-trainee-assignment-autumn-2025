@@ -13,6 +13,7 @@ import React, { useMemo, useState } from 'react';
 import type { GetAdsParams, Status } from '../types';
 import { useDebounce } from '../hooks/useDebounce';
 import { AdFilters } from '../components/AdFilters';
+import { AdSort } from '../components/AdSort';
 
 const AdListPage = () => {
   const [page, setPage] = useState(1);
@@ -21,6 +22,8 @@ const AdListPage = () => {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+
+  const [sortOption, setSortOption] = useState('createdAt_desc'); // Default value like in server
 
   const debouncedFilters = useDebounce(
     {
@@ -31,8 +34,13 @@ const AdListPage = () => {
     500
   );
 
-  const queryParams: GetAdsParams = useMemo(
-    () => ({
+  const queryParams: GetAdsParams = useMemo(() => {
+    const [sortBy, sortOrder] = sortOption.split('_') as [
+      GetAdsParams['sortBy'],
+      GetAdsParams['sortOrder'],
+    ];
+
+    return {
       page,
       limit: 10,
       search: debouncedFilters.search || undefined,
@@ -40,9 +48,10 @@ const AdListPage = () => {
       categoryId: Number(categoryFilter) || undefined,
       minPrice: Number(debouncedFilters.minPrice) || undefined,
       maxPrice: Number(debouncedFilters.maxPrice) || undefined,
-    }),
-    [page, debouncedFilters, statusFilter, categoryFilter]
-  );
+      sortBy,
+      sortOrder,
+    };
+  }, [page, debouncedFilters, statusFilter, categoryFilter, sortOption]);
 
   const { data, isLoading, isError, error, isPlaceholderData } = useQuery({
     queryKey: ['ads', queryParams],
@@ -64,6 +73,7 @@ const AdListPage = () => {
     setMinPrice('');
     setMaxPrice('');
     setPage(1);
+    setSortOption('createdAt_desc');
   };
 
   const ads = data?.ads || [];
@@ -101,21 +111,22 @@ const AdListPage = () => {
         <Typography variant="h4" component="h1">
           Advertisements
         </Typography>
-
-        <AdFilters
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          statusFilter={statusFilter}
-          onStatusChange={setStatusFilter}
-          categoryFilter={categoryFilter}
-          onCategoryChange={setCategoryFilter}
-          minPrice={minPrice}
-          onMinPriceChange={setMinPrice}
-          maxPrice={maxPrice}
-          onMaxPriceChange={setMaxPrice}
-          onReset={handleResetFilters}
-        />
+        <AdSort value={sortOption} onChange={setSortOption} />
       </Box>
+
+      <AdFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        statusFilter={statusFilter}
+        onStatusChange={setStatusFilter}
+        categoryFilter={categoryFilter}
+        onCategoryChange={setCategoryFilter}
+        minPrice={minPrice}
+        onMinPriceChange={setMinPrice}
+        maxPrice={maxPrice}
+        onMaxPriceChange={setMaxPrice}
+        onReset={handleResetFilters}
+      />
 
       {ads.length === 0 ? (
         <Typography>No advertisements found matching your criteria.</Typography>

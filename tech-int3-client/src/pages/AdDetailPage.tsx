@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
+import React, { useMemo, useRef, useState } from 'react';
+import { useParams, Link as RouterLink } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Box,
@@ -12,12 +12,17 @@ import {
   Divider,
   Chip,
 } from '@mui/material';
-import { ArrowBack } from '@mui/icons-material';
+import {
+  ArrowBack,
+  ArrowForward,
+} from '@mui/icons-material';
 import Carousel from '../components/Carousel';
 import { approveAd, getAdById, rejectAd } from '../api/adsApi';
 import toast from 'react-hot-toast';
 import { priorityColors, statusColors } from '../utils/Colors';
 import { RejectAdModal } from '../components/RejectAdModal';
+import { useHotkeys, type HotkeyConfig } from '../hooks/useHotkeys';
+import Keycap from '../components/Keycap';
 
 // helper component for displaying label-value pairs
 const InfoItem = ({
@@ -39,7 +44,6 @@ const InfoItem = ({
 
 const AdDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const adId = Number(id);
 
@@ -85,6 +89,37 @@ const AdDetailPage = () => {
     rejectMutation.mutate({ reason, comment });
   };
 
+  const approveButtonRef = useRef<HTMLButtonElement>(null);
+  const rejectButtonRef = useRef<HTMLButtonElement>(null);
+
+  const backButtonRef = useRef<HTMLButtonElement>(null);
+  const nextButtonRef = useRef<HTMLButtonElement>(null);
+
+  const handleNavigate = (direction: 'prev' | 'next') => {
+    const nextId = direction === 'prev' ? adId - 1 : adId + 1;
+    if (nextId > 0) {
+      window.location.href = `/item/${nextId}`;
+    }
+  };
+
+  const hotkeys = useMemo<HotkeyConfig[]>(
+    () => [
+      ['a', () => approveButtonRef.current?.click()],
+      ['A', () => approveButtonRef.current?.click()],
+      ['ф', () => approveButtonRef.current?.click()],
+      ['Ф', () => approveButtonRef.current?.click()],
+      ['d', () => rejectButtonRef.current?.click()],
+      ['D', () => rejectButtonRef.current?.click()],
+      ['в', () => rejectButtonRef.current?.click()],
+      ['В', () => rejectButtonRef.current?.click()],
+      ['ArrowRight', () => nextButtonRef.current?.click()],
+      ['ArrowLeft', () => backButtonRef.current?.click()],
+    ],
+    []
+  );
+
+  useHotkeys(hotkeys);
+
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -101,13 +136,6 @@ const AdDetailPage = () => {
       </Alert>
     );
   }
-
-  const handleNavigate = (direction: 'prev' | 'next') => {
-    const nextId = direction === 'prev' ? adId - 1 : adId + 1;
-    if (nextId > 0) {
-      navigate(`/item/${nextId}`);
-    }
-  };
 
   return (
     <Box>
@@ -158,27 +186,30 @@ const AdDetailPage = () => {
               <Divider sx={{ my: 2 }} />
               {ad.moderationHistory.length > 0 ? (
                 <Box sx={{ maxHeight: '400px', overflow: 'auto' }}>
-                  {ad.moderationHistory.map((entry) => (
-                    <Box
-                      key={entry.id}
-                      sx={{
-                        mb: 1,
-                        p: 1,
-                        border: '1px solid #eee',
-                        borderRadius: 1,
-                      }}
-                    >
-                      <Typography variant="body2">
-                        <strong>{entry.action}</strong> by {entry.moderatorName}{' '}
-                        on {new Date(entry.timestamp).toLocaleString()}
-                      </Typography>
-                      {entry.reason && (
-                        <Typography variant="caption">
-                          Reason: {entry.reason}
+                  {ad.moderationHistory
+                    .sort((a, b) => b.id - a.id)
+                    .map((entry) => (
+                      <Box
+                        key={entry.id}
+                        sx={{
+                          mb: 1,
+                          p: 1,
+                          border: '1px solid #eee',
+                          borderRadius: 1,
+                        }}
+                      >
+                        <Typography variant="body2">
+                          <strong>{entry.action}</strong> by{' '}
+                          {entry.moderatorName} on{' '}
+                          {new Date(entry.timestamp).toLocaleString()}
                         </Typography>
-                      )}
-                    </Box>
-                  ))}
+                        {entry.reason && (
+                          <Typography variant="caption">
+                            Reason: {entry.reason}
+                          </Typography>
+                        )}
+                      </Box>
+                    ))}
                 </Box>
               ) : (
                 <Typography variant="body2" color="text.secondary">
@@ -264,6 +295,7 @@ const AdDetailPage = () => {
       {/* Action Buttons */}
       <Paper sx={{ p: 2, mt: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
         <Button
+          ref={approveButtonRef}
           variant="contained"
           color="success"
           sx={{ flex: { xs: '1 0 100%', sm: 1 } }}
@@ -273,10 +305,14 @@ const AdDetailPage = () => {
           {approveMutation.isPending ? (
             <CircularProgress size={24} />
           ) : (
-            'Одобрить'
+            <>
+              <Keycap variant="filled">A</Keycap>
+              Одобрить
+            </>
           )}
         </Button>
         <Button
+          ref={rejectButtonRef}
           variant="contained"
           color="error"
           sx={{ flex: { xs: '1 0 100%', sm: 1 } }}
@@ -286,7 +322,10 @@ const AdDetailPage = () => {
           {rejectMutation.isPending ? (
             <CircularProgress size={24} />
           ) : (
-            'Отклонить'
+            <>
+              <Keycap variant="filled">D</Keycap>
+              Отклонить
+            </>
           )}
         </Button>
         <Button
@@ -323,11 +362,25 @@ const AdDetailPage = () => {
             justifyContent: { xs: 'space-between', sm: 'flex-end' },
           }}
         >
-          <Button variant="outlined" onClick={() => handleNavigate('prev')}>
+          <Button
+            ref={backButtonRef}
+            variant="outlined"
+            onClick={() => handleNavigate('prev')}
+          >
+            <Keycap variant="filled">
+              <ArrowBack />
+            </Keycap>
             Предыдущее
           </Button>
-          <Button variant="outlined" onClick={() => handleNavigate('next')}>
+          <Button
+            ref={nextButtonRef}
+            variant="outlined"
+            onClick={() => handleNavigate('next')}
+          >
             Следующее
+            <Keycap variant="filled">
+              <ArrowForward />
+            </Keycap>
           </Button>
         </Box>
       </Box>

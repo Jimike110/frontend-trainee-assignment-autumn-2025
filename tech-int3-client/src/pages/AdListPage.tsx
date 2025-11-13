@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import {
   Box,
   CircularProgress,
@@ -12,10 +13,13 @@ import { AdCard } from '../components/AdCard';
 import React, { useMemo, useState } from 'react';
 import type { GetAdsParams, Status } from '../types';
 import { useDebounce } from '../hooks/useDebounce';
+import { useHotkeys } from '../hooks/useHotkeys';
 import { AdFilters } from '../components/AdFilters';
 import { AdSort } from '../components/AdSort';
 
 const AdListPage = () => {
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<Status[]>([]);
@@ -33,6 +37,16 @@ const AdListPage = () => {
     },
     500
   );
+
+  useHotkeys([
+    [
+      '/',
+      () => {
+        searchInputRef.current?.focus();
+      },
+    ],
+    ['.', () => searchInputRef.current?.focus()],
+  ]);
 
   const queryParams: GetAdsParams = useMemo(() => {
     const [sortBy, sortOrder] = sortOption.split('_') as [
@@ -126,6 +140,7 @@ const AdListPage = () => {
         maxPrice={maxPrice}
         onMaxPriceChange={setMaxPrice}
         onReset={handleResetFilters}
+        ref={searchInputRef}
       />
 
       {ads.length === 0 ? (

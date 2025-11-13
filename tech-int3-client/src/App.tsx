@@ -6,7 +6,7 @@ import {
   Routes,
 } from 'react-router-dom';
 import AdListPage from './pages/AdListPage';
-import StatsPage from './pages/StatsPage';
+import { StatsPage } from './pages/StatsPage';
 import AdDetailPage from './pages/AdDetailPage';
 import { MainLayout } from './layouts/MainLayout';
 

@@ -12,6 +12,7 @@ export const MainLayout = () => {
   return (
     <Box sx={{ display: 'flex' }}>
       <AppBar component="nav">
+        {/* TODO: Add Avito Logo */}
         <Toolbar>
           <Typography
             variant="h6"

@@ -9,7 +9,7 @@ import {
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { getAds } from '../api/adsApi';
 import { AdCard } from '../components/AdCard';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { GetAdsParams, Status } from '../types';
 import { useDebounce } from '../hooks/useDebounce';
 import { AdFilters } from '../components/AdFilters';
@@ -18,15 +18,31 @@ const AdListPage = () => {
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<Status[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
 
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const debouncedFilters = useDebounce(
+    {
+      search: searchTerm,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
+    },
+    500
+  );
 
-  const queryParams: GetAdsParams = {
-    page,
-    limit: 10,
-    search: debouncedSearchTerm || undefined,
-    status: statusFilter.length > 0 ? statusFilter : undefined,
-  };
+  const queryParams: GetAdsParams = useMemo(
+    () => ({
+      page,
+      limit: 10,
+      search: debouncedFilters.search || undefined,
+      status: statusFilter.length > 0 ? statusFilter : undefined,
+      categoryId: Number(categoryFilter) || undefined,
+      minPrice: Number(debouncedFilters.minPrice) || undefined,
+      maxPrice: Number(debouncedFilters.maxPrice) || undefined,
+    }),
+    [page, debouncedFilters, statusFilter, categoryFilter]
+  );
 
   const { data, isLoading, isError, error, isPlaceholderData } = useQuery({
     queryKey: ['ads', queryParams],
@@ -35,11 +51,23 @@ const AdListPage = () => {
   });
 
   const handlePageChange = (
-    event: React.ChangeEvent<unknown>,
+    _event: React.ChangeEvent<unknown>,
     value: number
   ) => {
     setPage(value);
   };
+
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setStatusFilter([]);
+    setCategoryFilter('');
+    setMinPrice('');
+    setMaxPrice('');
+    setPage(1);
+  };
+
+  const ads = data?.ads || [];
+  const paginationInfo = data?.pagination;
 
   if (isLoading) {
     return (
@@ -58,15 +86,14 @@ const AdListPage = () => {
     );
   }
 
-  const ads = data?.ads || [];
-  const paginationInfo = data?.pagination;
-
   return (
     <Box>
       <Box
         sx={{
           mb: 2,
           display: 'flex',
+          gap: 2,
+          flexWrap: 'wrap',
           justifyContent: 'space-between',
           alignItems: 'center',
         }}
@@ -80,6 +107,13 @@ const AdListPage = () => {
           onSearchChange={setSearchTerm}
           statusFilter={statusFilter}
           onStatusChange={setStatusFilter}
+          categoryFilter={categoryFilter}
+          onCategoryChange={setCategoryFilter}
+          minPrice={minPrice}
+          onMinPriceChange={setMinPrice}
+          maxPrice={maxPrice}
+          onMaxPriceChange={setMaxPrice}
+          onReset={handleResetFilters}
         />
       </Box>
 

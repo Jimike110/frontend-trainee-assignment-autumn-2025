@@ -87,7 +87,7 @@ export interface AdsResponse {
 export interface GetAdsParams {
   page?: number;
   limit?: number;
-  status?: Status;
+  status?: Status[];
   categoryId?: number;
   minPrice?: number;
   maxPrice?: number;

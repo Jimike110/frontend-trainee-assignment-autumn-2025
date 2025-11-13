@@ -1,13 +1,45 @@
-import { Box, CircularProgress, Grid, Typography, Alert } from '@mui/material';
-import { useQuery } from '@tanstack/react-query';
+import {
+  Box,
+  CircularProgress,
+  Grid,
+  Typography,
+  Alert,
+  Pagination as MuiPagination,
+} from '@mui/material';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { getAds } from '../api/adsApi';
 import { AdCard } from '../components/AdCard';
+import React, { useState } from 'react';
+import type { GetAdsParams, Status } from '../types';
+import { useDebounce } from '../hooks/useDebounce';
+import { AdFilters } from '../components/AdFilters';
 
 const AdListPage = () => {
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['ads', {}],
-    queryFn: () => getAds({ page: 1, limit: 10 }),
+  const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<Status[]>([]);
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  const queryParams: GetAdsParams = {
+    page,
+    limit: 10,
+    search: debouncedSearchTerm || undefined,
+    status: statusFilter.length > 0 ? statusFilter : undefined,
+  };
+
+  const { data, isLoading, isError, error, isPlaceholderData } = useQuery({
+    queryKey: ['ads', queryParams],
+    queryFn: () => getAds(queryParams),
+    placeholderData: keepPreviousData,
   });
+
+  const handlePageChange = (
+    event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
+    setPage(value);
+  };
 
   if (isLoading) {
     return (
@@ -27,7 +59,7 @@ const AdListPage = () => {
   }
 
   const ads = data?.ads || [];
-  const pagination = data?.pagination;
+  const paginationInfo = data?.pagination;
 
   return (
     <Box>
@@ -42,23 +74,54 @@ const AdListPage = () => {
         <Typography variant="h4" component="h1">
           Advertisements
         </Typography>
-        {pagination && (
-          <Typography variant="body1" color="text.secondary">
-            Showing {ads.length} of {pagination.totalItems}
-          </Typography>
-        )}
+
+        <AdFilters
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter}
+        />
       </Box>
 
       {ads.length === 0 ? (
-        <Typography>No advertisements found.</Typography>
+        <Typography>No advertisements found matching your criteria.</Typography>
       ) : (
-        <Grid container spacing={3}>
-          {ads.map((ad) => (
-            <Grid key={ad.id} size={{ xs: 12, sm: 6, md: 4 }}>
-              <AdCard ad={ad} />
-            </Grid>
-          ))}
-        </Grid>
+        <>
+          <Grid container spacing={3}>
+            {ads.map((ad) => (
+              <Grid key={ad.id} size={{ xs: 12, sm: 6, md: 4 }}>
+                <AdCard ad={ad} />
+              </Grid>
+            ))}
+          </Grid>
+
+          <Box
+            sx={{
+              mt: 4,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 2,
+              justifyContent: 'center',
+            }}
+          >
+            <MuiPagination
+              count={paginationInfo?.totalPages || 1}
+              page={page}
+              onChange={handlePageChange}
+              color="primary"
+              hideNextButton={
+                isPlaceholderData ||
+                paginationInfo?.currentPage === paginationInfo?.totalPages
+              }
+            />
+            {paginationInfo && (
+              <Typography variant="body1" color="text.secondary">
+                Showing {ads.length} of {paginationInfo.totalItems}
+              </Typography>
+            )}
+          </Box>
+        </>
       )}
     </Box>
   );

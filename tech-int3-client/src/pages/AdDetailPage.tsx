@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Box,
   Typography,
@@ -10,9 +10,14 @@ import {
   Paper,
   Button,
   Divider,
+  Chip,
 } from '@mui/material';
+import { ArrowBack } from '@mui/icons-material';
 import Carousel from '../components/Carousel';
-import { getAdById } from '../api/adsApi';
+import { approveAd, getAdById, rejectAd } from '../api/adsApi';
+import toast from 'react-hot-toast';
+import { priorityColors, statusColors } from '../utils/Colors';
+import { RejectAdModal } from '../components/RejectAdModal';
 
 // helper component for displaying label-value pairs
 const InfoItem = ({
@@ -35,7 +40,10 @@ const InfoItem = ({
 const AdDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const adId = Number(id);
+
+  const [isRejectModalOpen, setRejectModalOpen] = useState(false);
 
   const {
     data: ad,
@@ -47,6 +55,35 @@ const AdDetailPage = () => {
     queryFn: () => getAdById(adId),
     enabled: !isNaN(adId),
   });
+
+  const approveMutation = useMutation({
+    mutationFn: () => approveAd(adId),
+    onSuccess: () => {
+      toast.success('Ad approved successfully!');
+      queryClient.invalidateQueries({ queryKey: ['ad', adId] });
+      queryClient.invalidateQueries({ queryKey: ['ads'] });
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : 'Failed to approve ad.');
+    },
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: (variables: { reason: string; comment?: string }) =>
+      rejectAd(adId, variables),
+    onSuccess: () => {
+      toast.success('Ad rejected successfully!');
+      queryClient.invalidateQueries({ queryKey: ['ad', adId] });
+      queryClient.invalidateQueries({ queryKey: ['ads'] });
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : 'Failed to reject ad.');
+    },
+  });
+
+  const handleRejectSubmit = (reason: string, comment?: string) => {
+    rejectMutation.mutate({ reason, comment });
+  };
 
   if (isLoading) {
     return (
@@ -148,6 +185,20 @@ const AdDetailPage = () => {
                   No moderation history yet.
                 </Typography>
               )}
+              <Divider sx={{ my: 2 }} />
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Chip
+                  label={ad.status}
+                  color={statusColors[ad.status]}
+                  size="small"
+                  variant="outlined"
+                />
+                <Chip
+                  label={ad.priority}
+                  color={priorityColors[ad.priority]}
+                  size="small"
+                />
+              </Box>
             </Paper>
           </Grid>
         </Grid>
@@ -216,22 +267,34 @@ const AdDetailPage = () => {
           variant="contained"
           color="success"
           sx={{ flex: { xs: '1 0 100%', sm: 1 } }}
+          onClick={() => approveMutation.mutate()}
+          disabled={approveMutation.isPending || ad?.status === 'approved'}
         >
-          Approve
+          {approveMutation.isPending ? (
+            <CircularProgress size={24} />
+          ) : (
+            'Одобрить'
+          )}
         </Button>
         <Button
           variant="contained"
           color="error"
           sx={{ flex: { xs: '1 0 100%', sm: 1 } }}
+          onClick={() => setRejectModalOpen(true)}
+          disabled={rejectMutation.isPending || ad?.status === 'rejected'}
         >
-          Reject
+          {rejectMutation.isPending ? (
+            <CircularProgress size={24} />
+          ) : (
+            'Отклонить'
+          )}
         </Button>
         <Button
           variant="contained"
           color="warning"
           sx={{ flex: { xs: '1 0 100%', sm: 1 } }}
         >
-          Request Changes
+          Вернуть на доработку
         </Button>
       </Paper>
 
@@ -250,7 +313,7 @@ const AdDetailPage = () => {
           to="/list"
           sx={{ flex: { xs: '1 0 100%', sm: 'auto' } }}
         >
-          ← Back to List
+          <ArrowBack /> Назад к списку
         </Button>
         <Box
           sx={{
@@ -261,13 +324,18 @@ const AdDetailPage = () => {
           }}
         >
           <Button variant="outlined" onClick={() => handleNavigate('prev')}>
-            Previous
+            Предыдущее
           </Button>
           <Button variant="outlined" onClick={() => handleNavigate('next')}>
-            Next
+            Следующее
           </Button>
         </Box>
       </Box>
+      <RejectAdModal
+        open={isRejectModalOpen}
+        onClose={() => setRejectModalOpen(false)}
+        onSubmit={handleRejectSubmit}
+      />
     </Box>
   );
 };

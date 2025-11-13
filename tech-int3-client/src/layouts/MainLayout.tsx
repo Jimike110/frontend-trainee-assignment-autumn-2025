@@ -7,10 +7,12 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material';
+import { Toaster } from 'react-hot-toast';
 
 export const MainLayout = () => {
   return (
     <Box sx={{ display: 'flex' }}>
+      <Toaster position="top-right" reverseOrder={false} />
       <AppBar component="nav">
         {/* TODO: Add Avito Logo */}
         <Toolbar>

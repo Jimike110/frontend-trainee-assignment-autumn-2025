@@ -9,21 +9,11 @@ import {
   Chip,
 } from '@mui/material';
 import type { Ad } from '../types/ads';
+import { statusColors, priorityColors } from '../utils/Colors'
 
 interface AdCardProps {
   ad: Ad;
 }
-
-const statusColors: Record<Ad['status'], 'success' | 'warning' | 'error'> = {
-  approved: 'success',
-  pending: 'warning',
-  rejected: 'error',
-};
-
-const priorityColors: Record<Ad['priority'], 'default' | 'error'> = {
-  normal: 'default',
-  urgent: 'error',
-};
 
 export const AdCard = ({ ad }: AdCardProps) => {
   const formattedDate = new Date(ad.createdAt).toLocaleDateString();

@@ -20,7 +20,7 @@ const Keycap: React.FC<KeycapProps> = ({
   const padding = size === 'small' ? '2px 6px' : '4px 8px';
   const fontSize = size === 'small' ? '0.75rem' : '0.875rem';
   const backgroundColor =
-    variant === 'filled' ? theme.palette.grey[200] : 'transparent';
+    variant === 'filled' ? theme.palette.background.paper : 'transparent';
   const borderColor =
     variant === 'outlined' ? theme.palette.grey[400] : 'transparent';
 

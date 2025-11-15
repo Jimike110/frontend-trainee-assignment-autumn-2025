@@ -1,1 +1,2 @@
 I had to add cors in backend
+justify your naming conventions and code structure

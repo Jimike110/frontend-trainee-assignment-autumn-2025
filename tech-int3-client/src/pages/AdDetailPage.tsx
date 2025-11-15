@@ -1,5 +1,10 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { useParams, Link as RouterLink } from 'react-router-dom';
+import {
+  useParams,
+  Link as RouterLink,
+  useNavigate,
+  useLocation,
+} from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Box,
@@ -12,10 +17,7 @@ import {
   Divider,
   Chip,
 } from '@mui/material';
-import {
-  ArrowBack,
-  ArrowForward,
-} from '@mui/icons-material';
+import { ArrowBack, ArrowForward } from '@mui/icons-material';
 import Carousel from '../components/Carousel';
 import { approveAd, getAdById, rejectAd } from '../api/adsApi';
 import toast from 'react-hot-toast';
@@ -46,6 +48,8 @@ const AdDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   const adId = Number(id);
+  const navigate = useNavigate();
+  const { totalItems } = useLocation().state || {};
 
   const [isRejectModalOpen, setRejectModalOpen] = useState(false);
 
@@ -98,6 +102,10 @@ const AdDetailPage = () => {
   const handleNavigate = (direction: 'prev' | 'next') => {
     const nextId = direction === 'prev' ? adId - 1 : adId + 1;
     if (nextId > 0) {
+      if (direction === 'next' && totalItems && nextId > totalItems) {
+        toast.error('This is the last advert.');
+        return;
+      }
       window.location.href = `/item/${nextId}`;
     }
   };
@@ -299,7 +307,15 @@ const AdDetailPage = () => {
           variant="contained"
           color="success"
           sx={{ flex: { xs: '1 0 100%', sm: 1 } }}
-          onClick={() => approveMutation.mutate()}
+          onClick={() => {
+            approveMutation.mutate();
+
+            const next = setTimeout(() => {
+              navigate(`/item/${ad.id + 1}`);
+            }, 1000);
+
+           return () => clearTimeout(next);
+          }}
           disabled={approveMutation.isPending || ad?.status === 'approved'}
         >
           {approveMutation.isPending ? (

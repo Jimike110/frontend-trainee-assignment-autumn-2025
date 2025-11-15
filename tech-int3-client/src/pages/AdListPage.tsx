@@ -382,7 +382,7 @@ const AdListPage = () => {
               }
             />
             {paginationInfo && (
-              <Typography variant="body1" color="text.secondary">
+              <Typography sx={{ mb: 17 }} variant="body1" color="text.secondary">
                 Showing {ads.length} of {paginationInfo.totalItems}
               </Typography>
             )}

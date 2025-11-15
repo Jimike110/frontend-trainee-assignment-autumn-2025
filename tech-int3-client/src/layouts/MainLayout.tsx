@@ -6,10 +6,15 @@ import {
   Container,
   Toolbar,
   Typography,
+  IconButton,
 } from '@mui/material';
 import { Toaster } from 'react-hot-toast';
+import {Brightness4, Brightness7} from '@mui/icons-material';
+import { useTheme } from '../context/ThemeContext';
 
 export const MainLayout = () => {
+  const { mode, toggleTheme } = useTheme();
+
   return (
     <Box sx={{ display: 'flex' }}>
       <Toaster position="top-right" reverseOrder={false} />
@@ -34,6 +39,10 @@ export const MainLayout = () => {
             >
               Stats
             </Button>
+
+            <IconButton sx={{ ml: 1 }} onClick={toggleTheme} color="inherit">
+              {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+            </IconButton>
           </Box>
         </Toolbar>
       </AppBar>

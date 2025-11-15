@@ -31,6 +31,7 @@ import { AdSort } from '../components/AdSort';
 import { BulkActionsBar } from '../components/BulkActionsBar';
 import { RejectAdModal } from '../components/RejectAdModal';
 import toast from 'react-hot-toast';
+import { useNewAds } from '../context/NewAdsContext';
 
 const AdListPage = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -58,6 +59,8 @@ const AdListPage = () => {
     const saved = localStorage.getItem('savedFilterSets');
     return saved ? JSON.parse(saved) : {};
   });
+
+  const { setLatestAdTimestamp } = useNewAds();
 
   const currentSelectedFilterSet = useMemo(() => {
     const currentParamsString = searchParams.toString();
@@ -198,15 +201,11 @@ const AdListPage = () => {
     };
   }, [searchParams, statusFilter, categoryFilter, page, sortOption]);
 
-  const { data, isLoading, isError, error, isPlaceholderData } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ['ads', queryParams],
     queryFn: () => getAds(queryParams),
     placeholderData: keepPreviousData,
   });
-
-  // useEffect(() => {
-  //   setSelectedAds([]);
-  // }, [queryParams]);
 
   const ads = data?.ads || [];
   const paginationInfo = data?.pagination;
@@ -223,6 +222,16 @@ const AdListPage = () => {
       setSelectedAds((prev) => [...new Set([...prev, ...pageIds])]);
     }
   };
+
+  useEffect(() => {
+    if (data?.ads && data.ads.length > 0) {
+    const newestTimestamp = data.ads.reduce((latest, ad) => 
+      ad.createdAt > latest ? ad.createdAt : latest,
+    data.ads[0].createdAt
+    );
+    setLatestAdTimestamp(newestTimestamp);
+  }
+  }, [data, setLatestAdTimestamp]);
 
   if (isLoading) {
     return (
@@ -276,7 +285,7 @@ const AdListPage = () => {
               }
             }}
           >
-            {Object.entries(savedFilters).map(([name,]) => (
+            {Object.entries(savedFilters).map(([name]) => (
               <MenuItem key={name} value={name}>
                 {name}
               </MenuItem>
@@ -376,13 +385,13 @@ const AdListPage = () => {
                 updateSearchParams('page', value.toString())
               }
               color="primary"
-              hideNextButton={
-                isPlaceholderData ||
-                paginationInfo?.currentPage === paginationInfo?.totalPages
-              }
             />
             {paginationInfo && (
-              <Typography sx={{ mb: 17 }} variant="body1" color="text.secondary">
+              <Typography
+                sx={{ mb: 17 }}
+                variant="body1"
+                color="text.secondary"
+              >
                 Showing {ads.length} of {paginationInfo.totalItems}
               </Typography>
             )}

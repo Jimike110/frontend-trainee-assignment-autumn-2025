@@ -62,6 +62,7 @@ const AdDetailPage = () => {
     queryKey: ['ad', adId],
     queryFn: () => getAdById(adId),
     enabled: !isNaN(adId),
+    refetchInterval: 5000,
   });
 
   const approveMutation = useMutation({

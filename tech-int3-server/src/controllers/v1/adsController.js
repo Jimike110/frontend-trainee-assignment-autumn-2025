@@ -246,10 +246,33 @@ const requestChanges = (req, res) => {
   }
 };
 
+const getNewAdsCount = (req, res) => {
+  try {
+    const { since } = req.query;
+    if (!since) {
+      return res.json({ newCount: 0 });
+    }
+
+    const sinceDate = new Date(since);
+
+    const newAds = dataStore.ads.filter(ad => 
+      new Date(ad.createdAt) > sinceDate
+    );
+
+    res.json({ newCount: newAds.length });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Ошибка при получении новых объявлений',
+      message: error.message
+    });
+  }
+};
+
 module.exports = {
   getAds,
   getAdById,
   approveAd,
   rejectAd,
-  requestChanges
+  requestChanges,
+  getNewAdsCount,
 };

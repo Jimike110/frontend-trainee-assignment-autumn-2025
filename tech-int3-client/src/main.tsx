@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './index.css';
 import App from './App.tsx';
 import { CustomThemeProvider } from './components/CustomThemeProvider.tsx';
+import { NewAdsProvider } from './components/NewAdsProvider.tsx';
 
 const queryClient = new QueryClient();
 
@@ -11,7 +12,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <CustomThemeProvider>
-        <App />
+        <NewAdsProvider>
+          <App />
+        </NewAdsProvider>
       </CustomThemeProvider>
     </QueryClientProvider>
   </StrictMode>

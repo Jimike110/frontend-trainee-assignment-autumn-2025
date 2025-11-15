@@ -73,7 +73,7 @@ export const rejectAd = async (id: number, payload: AdPayload): Promise<Ad> => {
  * @returns A promise that resolves when the operation is complete.
  */
 export const approveMultipleAds = async (ids: number[]): Promise<void> => {
-  const approvePromises = ids.map(id => approveAd(id));
+  const approvePromises = ids.map((id) => approveAd(id));
   await Promise.all(approvePromises);
 };
 
@@ -83,7 +83,24 @@ export const approveMultipleAds = async (ids: number[]): Promise<void> => {
  * @param payload - The rejection reason and optional comment.
  * @returns A promise that resolves when the operation is complete.
  */
-export const rejectMultipleAds = async (ids: number[], payload: AdPayload): Promise<void> => {
-  const rejectPromises = ids.map(id => rejectAd(id, payload));
+export const rejectMultipleAds = async (
+  ids: number[],
+  payload: AdPayload
+): Promise<void> => {
+  const rejectPromises = ids.map((id) => rejectAd(id, payload));
   await Promise.all(rejectPromises);
-}
+};
+
+/**
+ * Fetches the count of the new pending ads created since a given timestamp.
+ * @param since - An ISO timestamp string.
+ * @returns A promise that resolves to an object with the new ad count.
+ */
+export const getNewAdsCount = async (
+  since: string
+): Promise<{ newCount: number }> => {
+  const response = await axiosClient.get('/ads/new-count', {
+    params: { since },
+  });
+  return response.data;
+};

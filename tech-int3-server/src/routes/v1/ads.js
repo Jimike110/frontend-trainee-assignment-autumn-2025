@@ -5,8 +5,11 @@ const {
   getAdById, 
   approveAd, 
   rejectAd, 
-  requestChanges 
+  requestChanges,
+  getNewAdsCount
 } = require('../../controllers/v1/adsController');
+
+router.get('/new-count', getNewAdsCount);
 
 router.get('/', getAds);
 

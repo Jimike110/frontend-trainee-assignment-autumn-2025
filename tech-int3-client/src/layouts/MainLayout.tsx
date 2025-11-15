@@ -7,20 +7,28 @@ import {
   Toolbar,
   Typography,
   IconButton,
+  Chip,
 } from '@mui/material';
 import { Toaster } from 'react-hot-toast';
-import {Brightness4, Brightness7} from '@mui/icons-material';
+import { Brightness4, Brightness7 } from '@mui/icons-material';
 import { useTheme } from '../context/ThemeContext';
+import { useNewAds } from '../context/NewAdsContext';
 
 export const MainLayout = () => {
   const { mode, toggleTheme } = useTheme();
+  const { newAdsCount, triggerRefetch } = useNewAds();
 
   return (
     <Box sx={{ display: 'flex' }}>
       <Toaster position="top-right" reverseOrder={false} />
       <AppBar component="nav">
         <Toolbar>
-          <img width={110} src="https://static.tildacdn.com/tild6438-3762-4439-a366-616561343235/Logo-Avito_new_2.svg" alt="Avito Logo" style={{ marginInline: 16 }} />
+          <img
+            width={110}
+            src="https://static.tildacdn.com/tild6438-3762-4439-a366-616561343235/Logo-Avito_new_2.svg"
+            alt="Avito Logo"
+            style={{ marginInline: 16 }}
+          />
           <Typography
             variant="h6"
             component="div"
@@ -29,6 +37,17 @@ export const MainLayout = () => {
             модерация
           </Typography>
           <Box>
+            {newAdsCount > 0 && (
+              <Button
+                variant="contained"
+                color="warning"
+                onClick={triggerRefetch}
+                endIcon={<Chip label={newAdsCount} size="small" />}
+                sx={{ mr: 2 }}
+              >
+                Load New
+              </Button>
+            )}
             <Button sx={{ color: '#fff' }} component={RouterNavLink} to="/list">
               Ads
             </Button>

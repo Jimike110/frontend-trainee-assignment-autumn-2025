@@ -105,6 +105,8 @@ export const StatsPage = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 2,
           mb: 3,
         }}
       >

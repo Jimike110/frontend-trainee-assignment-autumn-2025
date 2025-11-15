@@ -7,33 +7,56 @@ import {
   Button,
   Box,
   Chip,
+  Checkbox,
 } from '@mui/material';
 import type { Ad } from '../types/ads';
-import { statusColors, priorityColors } from '../utils/Colors'
+import { statusColors, priorityColors } from '../utils/Colors';
 
 interface AdCardProps {
   ad: Ad;
+  isSelected: boolean;
+  onToggleSelect: (id: number) => void;
 }
 
-export const AdCard = ({ ad }: AdCardProps) => {
+export const AdCard = ({ ad, isSelected, onToggleSelect }: AdCardProps) => {
   const formattedDate = new Date(ad.createdAt).toLocaleDateString();
 
+  const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.stopPropagation(); // prevent the click event from propagating to the RouterLink
+    onToggleSelect(ad.id);
+  };
+
   return (
-    <RouterLink to={`/item/${ad.id}`}>
-      <Card
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
-          '&:hover': { transform: 'translateY(-10px)', transition: 'transform 0.3s ease' },
-        }}
-      >
-        <CardMedia
-          component="img"
-          height="160"
-          image={ad.images[0] || 'https://placehold.co/360x160'}
-          alt={ad.title}
+    <Card
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        position: 'relative',
+        '&:hover': {
+          transform: 'translateY(-10px)',
+          transition: 'transform 0.3s ease',
+        },
+      }}
+    >
+      <Box sx={{ position: 'absolute', top: 4, left: 4, zIndex: 1 }}>
+        <Checkbox
+          checked={isSelected}
+          onChange={handleCheckboxChange}
+          sx={{
+            backgroundColor: 'rgba(255, 255, 255, 0.7)',
+            '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.9)' },
+          }}
         />
+      </Box>
+      <CardMedia
+        component="img"
+        height="160"
+        image={ad.images[0] || 'https://placehold.co/360x160'}
+        alt={ad.title}
+      />
+
+      <RouterLink to={`/item/${ad.id}`}>
         <CardContent sx={{ flexGrow: 1 }}>
           <Typography gutterBottom variant="h6" component="div">
             {ad.title}
@@ -70,7 +93,7 @@ export const AdCard = ({ ad }: AdCardProps) => {
             Открыть
           </Button>
         </Box>
-      </Card>
-    </RouterLink>
+      </RouterLink>
+    </Card>
   );
 };

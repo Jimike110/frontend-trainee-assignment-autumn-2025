@@ -1,18 +1,29 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 
 export type HotkeyConfig = [string, (event: KeyboardEvent) => void];
 
-/**
- * A custom hook to declaratively manage keyboard shortcuts.
- * @param hotkeys - an array of tuples, each containing a key and a callback function to execute.
- */
-
 export function useHotkeys(hotkeys: HotkeyConfig[]) {
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // do not trigger hotkeys if user is typing
+  // Memoize to prevent re-adding/removing the listener on every render
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.repeat) {
+        return;
+      }
+
       const target = event.target as HTMLElement;
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
+      
+
+      // prevent firing on input but allow on checkboxes so that it calls on home screen
+      // without having to change focus
+      const isTextInput =
+        target.isContentEditable ||
+        target.tagName === 'TEXTAREA' ||
+        (target.tagName === 'INPUT' &&
+          !['checkbox', 'radio', 'button', 'submit', 'reset'].includes(
+            (target as HTMLInputElement).type
+          ));
+
+      if (isTextInput) {
         return;
       }
 
@@ -20,15 +31,18 @@ export function useHotkeys(hotkeys: HotkeyConfig[]) {
 
       if (hotkey) {
         const [, callback] = hotkey;
-        event.preventDefault(); // prevent browser default actions
+        event.preventDefault();
         callback(event);
       }
-    };
+    },
+    [hotkeys]
+  );
 
+  useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [hotkeys]);
+  }, [handleKeyDown]);
 }

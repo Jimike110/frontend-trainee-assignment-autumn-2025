@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import {
   Box,
   CircularProgress,
@@ -6,16 +6,25 @@ import {
   Typography,
   Alert,
   Pagination as MuiPagination,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { getAds } from '../api/adsApi';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import { getAds, approveMultipleAds, rejectMultipleAds } from '../api/adsApi';
 import { AdCard } from '../components/AdCard';
-import React, { useMemo, useState } from 'react';
 import type { GetAdsParams, Status } from '../types';
 import { useDebounce } from '../hooks/useDebounce';
 import { useHotkeys } from '../hooks/useHotkeys';
 import { AdFilters } from '../components/AdFilters';
 import { AdSort } from '../components/AdSort';
+import { BulkActionsBar } from '../components/BulkActionsBar';
+import { RejectAdModal } from '../components/RejectAdModal';
+import toast from 'react-hot-toast';
 
 const AdListPage = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -28,6 +37,44 @@ const AdListPage = () => {
   const [maxPrice, setMaxPrice] = useState('');
 
   const [sortOption, setSortOption] = useState('createdAt_desc'); // Default value like in server
+
+  const queryClient = useQueryClient();
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [selectedAds, setSelectedAds] = useState<number[]>([]);
+
+  // Bulk approve mutation
+  const bulkApproveMutation = useMutation({
+    mutationFn: () => approveMultipleAds(selectedAds),
+    onSuccess: () => {
+      toast.success(`${selectedAds.length} ad(s) approved successfully.`);
+      setSelectedAds([]);
+      queryClient.invalidateQueries({ queryKey: ['ads'] });
+    },
+    onError: () => toast.error('An error occurred during bulk approval.'),
+  });
+
+  // Bulk reject mutation
+  const bulkRejectMutation = useMutation({
+    mutationFn: (payload: { reason: string; comment?: string }) =>
+      rejectMultipleAds(selectedAds, payload),
+    onSuccess: () => {
+      toast.success(`${selectedAds.length} ad(s) rejected successfully.`);
+      setSelectedAds([]);
+      queryClient.invalidateQueries({ queryKey: ['ads'] });
+    },
+    onError: () => toast.error('An error occurred during bulk rejection.'),
+  });
+
+  const handleBulkRejectionSubmit = (reason: string, comment?: string) => {
+    bulkRejectMutation.mutate({ reason, comment });
+    setIsRejectModalOpen(false);
+  };
+
+  const handleToggleSelect = (id: number) => {
+    setSelectedAds((prev) =>
+      prev.includes(id) ? prev.filter((adId) => adId !== id) : [...prev, id]
+    );
+  };
 
   const debouncedFilters = useDebounce(
     {
@@ -92,6 +139,19 @@ const AdListPage = () => {
 
   const ads = data?.ads || [];
   const paginationInfo = data?.pagination;
+  const areAllOnPageSelected =
+    ads.length > 0 && ads.every((ad) => selectedAds.includes(ad.id));
+
+  const handleSelectAll = () => {
+    if (areAllOnPageSelected) {
+      setSelectedAds((prev) =>
+        prev.filter((id) => !ads.some((ad) => ad.id === id))
+      );
+    } else {
+      const pageIds = ads.map((ad) => ad.id);
+      setSelectedAds((prev) => [...new Set([...prev, ...pageIds])]);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -143,6 +203,18 @@ const AdListPage = () => {
         ref={searchInputRef}
       />
 
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={areAllOnPageSelected}
+            indeterminate={selectedAds.length > 0 && !areAllOnPageSelected}
+            onChange={handleSelectAll}
+          />
+        }
+        label="Select all on page"
+        sx={{ mb: 2 }}
+      />
+
       {ads.length === 0 ? (
         <Typography>No advertisements found matching your criteria.</Typography>
       ) : (
@@ -150,7 +222,11 @@ const AdListPage = () => {
           <Grid container spacing={3}>
             {ads.map((ad) => (
               <Grid key={ad.id} size={{ xs: 12, sm: 6, md: 4 }}>
-                <AdCard ad={ad} />
+                <AdCard
+                  isSelected={selectedAds.includes(ad.id)}
+                  onToggleSelect={handleToggleSelect}
+                  ad={ad}
+                />
               </Grid>
             ))}
           </Grid>
@@ -181,6 +257,21 @@ const AdListPage = () => {
               </Typography>
             )}
           </Box>
+
+          {selectedAds.length > 0 && (
+            <BulkActionsBar
+              selectedCount={selectedAds.length}
+              onApprove={() => bulkApproveMutation.mutate()}
+              onReject={() => setIsRejectModalOpen(true)}
+              onClear={() => setSelectedAds([])}
+            />
+          )}
+
+          <RejectAdModal
+            open={isRejectModalOpen}
+            onClose={() => setIsRejectModalOpen(false)}
+            onSubmit={handleBulkRejectionSubmit}
+          />
         </>
       )}
     </Box>

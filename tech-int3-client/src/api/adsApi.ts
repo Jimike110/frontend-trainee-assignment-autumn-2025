@@ -66,3 +66,24 @@ export const rejectAd = async (id: number, payload: AdPayload): Promise<Ad> => {
     throw new Error('Could not reject the advert.');
   }
 };
+
+/**
+ * Approves multiple ads by their IDs.
+ * @param ids - An array of ad IDs to approve.
+ * @returns A promise that resolves when the operation is complete.
+ */
+export const approveMultipleAds = async (ids: number[]): Promise<void> => {
+  const approvePromises = ids.map(id => approveAd(id));
+  await Promise.all(approvePromises);
+};
+
+/**
+ * Rejects multiple ads by their IDs.
+ * @param ids - An array of ad IDs to reject.
+ * @param payload - The rejection reason and optional comment.
+ * @returns A promise that resolves when the operation is complete.
+ */
+export const rejectMultipleAds = async (ids: number[], payload: AdPayload): Promise<void> => {
+  const rejectPromises = ids.map(id => rejectAd(id, payload));
+  await Promise.all(rejectPromises);
+}

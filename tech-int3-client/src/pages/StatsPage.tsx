@@ -9,6 +9,8 @@ import {
   ToggleButton,
   CircularProgress,
   Alert,
+  Stack,
+  Button,
 } from '@mui/material';
 import {
   getSummaryStats,
@@ -20,6 +22,7 @@ import {
 import { ActivityChart } from '../components/ActivityChart';
 import { DecisionsChart } from '../components/DecisionsChart';
 import { CategoriesChart } from '../components/CategoriesChart';
+import { exportStatsToCSV, generatePdfReport } from '../utils/exportUtils';
 
 const StatCard = ({
   title,
@@ -79,6 +82,18 @@ export const StatsPage = () => {
     decisionsQuery.isError ||
     categoriesQuery.isError;
 
+  const handleExportCSV = () => {
+    if (summaryQuery.data && activityQuery.data) {
+      exportStatsToCSV(summaryQuery.data, activityQuery.data);
+    }
+  };
+
+  const handleGeneratePDF = () => {
+    if (summaryQuery.data && activityQuery.data) {
+      generatePdfReport(summaryQuery.data, activityQuery.data);
+    }
+  };
+
   if (isError) {
     return <Alert severity="error">Failed to load statistics.</Alert>;
   }
@@ -96,6 +111,24 @@ export const StatsPage = () => {
         <Typography variant="h4" component={'h1'}>
           Moderator Statistics
         </Typography>
+
+        <Stack direction="row" spacing={2}>
+          <Button
+            variant="outlined"
+            onClick={handleExportCSV}
+            disabled={isLoading}
+          >
+            Export to CSV
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleGeneratePDF}
+            disabled={isLoading}
+          >
+            Generate PDF Report
+          </Button>
+        </Stack>
+
         <ToggleButtonGroup
           value={period}
           exclusive

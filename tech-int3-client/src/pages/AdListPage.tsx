@@ -1,4 +1,5 @@
-import React, { useMemo, useState, useRef } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Box,
   CircularProgress,
@@ -8,6 +9,11 @@ import {
   Pagination as MuiPagination,
   FormControlLabel,
   Checkbox,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
   keepPreviousData,
@@ -28,19 +34,38 @@ import toast from 'react-hot-toast';
 
 const AdListPage = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [page, setPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<Status[]>([]);
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-
-  const [sortOption, setSortOption] = useState('createdAt_desc'); // Default value like in server
+  const page = Number(searchParams.get('page')) || 1;
+  const [liveSearchTerm, setLiveSearchTerm] = useState(
+    searchParams.get('search') || ''
+  );
+  const statusFilter = searchParams.getAll('status') as Status[];
+  const categoryFilter = searchParams.get('category') || '';
+  const [liveMinPrice, setLiveMinPrice] = useState(
+    searchParams.get('minPrice') || ''
+  );
+  const [liveMaxPrice, setLiveMaxPrice] = useState(
+    searchParams.get('maxPrice') || ''
+  );
+  const sortOption = searchParams.get('sort') || 'createdAt_desc';
 
   const queryClient = useQueryClient();
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [selectedAds, setSelectedAds] = useState<number[]>([]);
+
+  const [savedFilters, setSavedFilters] = useState(() => {
+    const saved = localStorage.getItem('savedFilterSets');
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  const currentSelectedFilterSet = useMemo(() => {
+    const currentParamsString = searchParams.toString();
+    const foundEntry = Object.entries(savedFilters).find(
+      ([, params]) => params === currentParamsString
+    );
+    return foundEntry ? foundEntry[0] : '';
+  }, [searchParams, savedFilters]);
 
   // Bulk approve mutation
   const bulkApproveMutation = useMutation({
@@ -76,14 +101,36 @@ const AdListPage = () => {
     );
   };
 
-  const debouncedFilters = useDebounce(
-    {
-      search: searchTerm,
-      minPrice: minPrice,
-      maxPrice: maxPrice,
-    },
-    500
-  );
+  const debouncedSearchTerm = useDebounce(liveSearchTerm, 500);
+  const debouncedMinPrice = useDebounce(liveMinPrice, 500);
+  const debouncedMaxPrice = useDebounce(liveMaxPrice, 500);
+
+  useEffect(() => {
+    setSearchParams(
+      (prev) => {
+        const setOrDelete = (key: string, value: string) => {
+          if (value) {
+            prev.set(key, value);
+          } else {
+            prev.delete(key);
+          }
+        };
+
+        setOrDelete('search', debouncedSearchTerm);
+        setOrDelete('minPrice', debouncedMinPrice);
+        setOrDelete('maxPrice', debouncedMaxPrice);
+
+        prev.delete('page');
+        return prev;
+      },
+      { replace: true }
+    );
+  }, [
+    debouncedSearchTerm,
+    debouncedMinPrice,
+    debouncedMaxPrice,
+    // setSearchParams,
+  ]);
 
   useHotkeys([
     [
@@ -95,24 +142,61 @@ const AdListPage = () => {
     ['.', () => searchInputRef.current?.focus()],
   ]);
 
+  const updateSearchParams = (key: string, value: string | string[] | null) => {
+    setSearchParams(
+      (prev) => {
+        if (
+          value === null ||
+          (typeof value === 'string' && !value) ||
+          (Array.isArray(value) && value.length === 0)
+        ) {
+          prev.delete(key);
+        } else if (Array.isArray(value)) {
+          prev.delete(key);
+          value.forEach((item) => prev.append(key, item));
+        } else {
+          prev.set(key, value);
+        }
+
+        if (key !== 'page') {
+          prev.delete('page');
+        }
+
+        return prev;
+      },
+      { replace: true }
+    );
+  };
+
+  const handleResetFilters = () => {
+    setSearchParams({}, { replace: true });
+    setLiveSearchTerm('');
+    setLiveMinPrice('');
+    setLiveMaxPrice('');
+  };
+
   const queryParams: GetAdsParams = useMemo(() => {
     const [sortBy, sortOrder] = sortOption.split('_') as [
       GetAdsParams['sortBy'],
       GetAdsParams['sortOrder'],
     ];
 
+    const debouncedSearchFromURL = searchParams.get('search') || '';
+    const debouncedMinPriceFromURL = searchParams.get('minPrice') || '';
+    const debouncedMaxPriceFromURL = searchParams.get('maxPrice') || '';
+
     return {
       page,
       limit: 10,
-      search: debouncedFilters.search || undefined,
+      search: debouncedSearchFromURL || undefined,
       status: statusFilter.length > 0 ? statusFilter : undefined,
-      categoryId: Number(categoryFilter) || undefined,
-      minPrice: Number(debouncedFilters.minPrice) || undefined,
-      maxPrice: Number(debouncedFilters.maxPrice) || undefined,
+      categoryId: categoryFilter ? Number(categoryFilter) : undefined,
+      minPrice: Number(debouncedMinPriceFromURL) || undefined,
+      maxPrice: Number(debouncedMaxPriceFromURL) || undefined,
       sortBy,
       sortOrder,
     };
-  }, [page, debouncedFilters, statusFilter, categoryFilter, sortOption]);
+  }, [searchParams, statusFilter, categoryFilter, page, sortOption]);
 
   const { data, isLoading, isError, error, isPlaceholderData } = useQuery({
     queryKey: ['ads', queryParams],
@@ -120,22 +204,9 @@ const AdListPage = () => {
     placeholderData: keepPreviousData,
   });
 
-  const handlePageChange = (
-    _event: React.ChangeEvent<unknown>,
-    value: number
-  ) => {
-    setPage(value);
-  };
-
-  const handleResetFilters = () => {
-    setSearchTerm('');
-    setStatusFilter([]);
-    setCategoryFilter('');
-    setMinPrice('');
-    setMaxPrice('');
-    setPage(1);
-    setSortOption('createdAt_desc');
-  };
+  // useEffect(() => {
+  //   setSelectedAds([]);
+  // }, [queryParams]);
 
   const ads = data?.ads || [];
   const paginationInfo = data?.pagination;
@@ -185,20 +256,77 @@ const AdListPage = () => {
         <Typography variant="h4" component="h1">
           Advertisements
         </Typography>
-        <AdSort value={sortOption} onChange={setSortOption} />
+        <FormControl size="small" sx={{ minWidth: 200 }}>
+          <InputLabel>Load Saved Filters</InputLabel>
+          <Select
+            label="Load Saved Filters"
+            value={currentSelectedFilterSet}
+            onChange={(e) => {
+              const selectedName = e.target.value as string;
+              if (selectedName) {
+                const paramsString = savedFilters[selectedName];
+                setSearchParams(new URLSearchParams(paramsString), {
+                  replace: true,
+                });
+
+                const newParams = new URLSearchParams(paramsString);
+                setLiveSearchTerm(newParams.get('search') || '');
+                setLiveMinPrice(newParams.get('minPrice') || '');
+                setLiveMaxPrice(newParams.get('maxPrice') || '');
+              }
+            }}
+          >
+            {Object.entries(savedFilters).map(([name,]) => (
+              <MenuItem key={name} value={name}>
+                {name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Button
+          variant="contained"
+          onClick={() => {
+            const name = prompt('Enter a name for this filter set:');
+            if (name) {
+              const newSavedFilters = {
+                ...savedFilters,
+                [name]: searchParams.toString(),
+              };
+              setSavedFilters(newSavedFilters);
+              localStorage.setItem(
+                'savedFilterSets',
+                JSON.stringify(newSavedFilters)
+              );
+            }
+          }}
+        >
+          Save Current Filters
+        </Button>
+        <Button
+          onClick={() => {
+            setSavedFilters({});
+            localStorage.removeItem('savedFilterSets');
+          }}
+        >
+          Clear Saved Filters
+        </Button>
+        <AdSort
+          value={sortOption}
+          onChange={(val) => updateSearchParams('sort', val)}
+        />
       </Box>
 
       <AdFilters
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
+        searchTerm={liveSearchTerm}
+        onSearchChange={setLiveSearchTerm}
         statusFilter={statusFilter}
-        onStatusChange={setStatusFilter}
+        onStatusChange={(val) => updateSearchParams('status', val)}
         categoryFilter={categoryFilter}
-        onCategoryChange={setCategoryFilter}
-        minPrice={minPrice}
-        onMinPriceChange={setMinPrice}
-        maxPrice={maxPrice}
-        onMaxPriceChange={setMaxPrice}
+        onCategoryChange={(val) => updateSearchParams('category', val)}
+        minPrice={liveMinPrice}
+        onMinPriceChange={setLiveMinPrice}
+        maxPrice={liveMaxPrice}
+        onMaxPriceChange={setLiveMaxPrice}
         onReset={handleResetFilters}
         ref={searchInputRef}
       />
@@ -244,7 +372,9 @@ const AdListPage = () => {
             <MuiPagination
               count={paginationInfo?.totalPages || 1}
               page={page}
-              onChange={handlePageChange}
+              onChange={(_e, value) =>
+                updateSearchParams('page', value.toString())
+              }
               color="primary"
               hideNextButton={
                 isPlaceholderData ||

@@ -123,7 +123,7 @@ const calculateActivityChart = (ads, dateRange) => {
   const result = [];
   const daysInPeriod = Math.ceil((dateRange.end - dateRange.start) / (24 * 60 * 60 * 1000));
   
-  for (let i = 0; i <= daysInPeriod; i++) {
+  for (let i = 1; i <= daysInPeriod; i++) {
     const currentDate = new Date(dateRange.start);
     currentDate.setDate(dateRange.start.getDate() + i);
     const dateStr = currentDate.toISOString().split('T')[0];

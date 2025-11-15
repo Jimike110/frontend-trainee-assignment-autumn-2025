@@ -58,7 +58,7 @@ export const BulkActionsBar = ({
                         mb: { xs: 0.5, sm: 0 },
                     }}
                 >
-                    {selectedCount} selected
+                    {selectedCount} выбран{selectedCount === 1 ? 'о' : 'ы'}
                 </Typography>
 
                 <Box
@@ -78,7 +78,7 @@ export const BulkActionsBar = ({
                         size={isSm ? 'small' : 'medium'}
                         fullWidth={isSm}
                     >
-                        <Keycap variant='filled'>A</Keycap>
+                        {!isSm && <Keycap variant='filled'>A</Keycap>}
                         {isSm ? 'Одобрить' : ' Одобрить выбранное'}
                     </Button>
 
@@ -90,7 +90,7 @@ export const BulkActionsBar = ({
                         size={isSm ? 'small' : 'medium'}
                         fullWidth={isSm}
                     >
-                        <Keycap variant='filled'>D</Keycap>
+                        {!isSm && <Keycap variant='filled'>D</Keycap>}
                         {isSm ? 'Отклонить' : ' Отклонить выбранное'}
                     </Button>
 
@@ -102,7 +102,7 @@ export const BulkActionsBar = ({
                         fullWidth={isSm}
                         ref={clearRef}
                     >
-                        <Keycap variant='filled'>Esc</Keycap>
+                        {!isSm && <Keycap variant='filled'>Esc</Keycap>}
                         {isSm ? 'Очистить' : ' Очистить выбранное'}
                     </Button>
                 </Box>

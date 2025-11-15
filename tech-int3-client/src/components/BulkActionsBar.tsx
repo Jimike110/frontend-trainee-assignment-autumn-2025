@@ -10,6 +10,7 @@ interface BulkActionsBarProps {
     onClear: () => void;
 }
 
+// TODO: Make accept or reject buttons conditionally active depending on if all selected are all approved or rejected
 export const BulkActionsBar = ({
     selectedCount,
     onApprove,

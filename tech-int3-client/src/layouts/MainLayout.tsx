@@ -19,14 +19,14 @@ export const MainLayout = () => {
     <Box sx={{ display: 'flex' }}>
       <Toaster position="top-right" reverseOrder={false} />
       <AppBar component="nav">
-        {/* TODO: Add Avito Logo */}
         <Toolbar>
+          <img width={110} src="https://static.tildacdn.com/tild6438-3762-4439-a366-616561343235/Logo-Avito_new_2.svg" alt="Avito Logo" style={{ marginInline: 16 }} />
           <Typography
             variant="h6"
             component="div"
             sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
           >
-            Avito Moderation Tool
+            модерация
           </Typography>
           <Box>
             <Button sx={{ color: '#fff' }} component={RouterNavLink} to="/list">

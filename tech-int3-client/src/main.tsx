@@ -5,6 +5,7 @@ import './index.css';
 import App from './App.tsx';
 import { CustomThemeProvider } from './components/CustomThemeProvider.tsx';
 import { NewAdsProvider } from './components/NewAdsProvider.tsx';
+import 'nprogress/nprogress.css';
 
 const queryClient = new QueryClient();
 

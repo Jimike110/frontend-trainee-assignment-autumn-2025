@@ -18,14 +18,20 @@ import { Brightness4, Brightness7 } from '@mui/icons-material';
 import { useTheme } from '../context/ThemeContext';
 import { useNewAds } from '../context/NewAdsContext';
 import { AnimatePresence, motion } from 'framer-motion';
+import { QueryProgressBar } from '../components/QueryProgressBar';
 
 export const MainLayout = () => {
   const { mode, toggleTheme } = useTheme();
   const { newAdsCount, triggerRefetch } = useNewAds();
   const location = useLocation();
 
+  const hasFilters = location.search.includes('page=') ;
+
+  const showLoadNew = newAdsCount > 0 && !hasFilters;
+
   return (
     <Box sx={{ display: 'flex' }}>
+      <QueryProgressBar />
       <Toaster position="top-right" reverseOrder={false} />
       <AppBar component="nav">
         <Toolbar>
@@ -43,7 +49,7 @@ export const MainLayout = () => {
             модерация
           </Typography>
           <Box>
-            {newAdsCount > 0 && (
+            {showLoadNew && (
               <Button
                 variant="contained"
                 color="warning"

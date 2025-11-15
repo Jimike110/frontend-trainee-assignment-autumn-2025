@@ -33,28 +33,24 @@ import { RejectAdModal } from '../components/RejectAdModal';
 import toast from 'react-hot-toast';
 import { useNewAds } from '../context/NewAdsContext';
 import { AnimatedPage } from '../components/AnimatedPage';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05,
-    },
-  },
+  visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
 };
 
 const cardVariants = {
   hidden: { y: 20, opacity: 0 },
   visible: { y: 0, opacity: 1 },
+  exit: { opacity: 0, y: 10 },
 };
 
 const AdListPage = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [searchParams, setSearchParams] = useSearchParams();
-
   const page = Number(searchParams.get('page')) || 1;
+
   const [liveSearchTerm, setLiveSearchTerm] = useState(
     searchParams.get('search') || ''
   );
@@ -77,7 +73,7 @@ const AdListPage = () => {
     return saved ? JSON.parse(saved) : {};
   });
 
-  const { setLatestAdTimestamp } = useNewAds();
+  const { setLatestAdTimestamp, setPollingEnabled } = useNewAds();
 
   const currentSelectedFilterSet = useMemo(() => {
     const currentParamsString = searchParams.toString();
@@ -87,7 +83,6 @@ const AdListPage = () => {
     return foundEntry ? foundEntry[0] : '';
   }, [searchParams, savedFilters]);
 
-  // Bulk approve mutation
   const bulkApproveMutation = useMutation({
     mutationFn: () => approveMultipleAds(selectedAds),
     onSuccess: () => {
@@ -98,7 +93,6 @@ const AdListPage = () => {
     onError: () => toast.error('An error occurred during bulk approval.'),
   });
 
-  // Bulk reject mutation
   const bulkRejectMutation = useMutation({
     mutationFn: (payload: { reason: string; comment?: string }) =>
       rejectMultipleAds(selectedAds, payload),
@@ -129,36 +123,22 @@ const AdListPage = () => {
     setSearchParams(
       (prev) => {
         const setOrDelete = (key: string, value: string) => {
-          if (value) {
-            prev.set(key, value);
-          } else {
-            prev.delete(key);
-          }
+          if (value) prev.set(key, value);
+          else prev.delete(key);
         };
-
         setOrDelete('search', debouncedSearchTerm);
         setOrDelete('minPrice', debouncedMinPrice);
         setOrDelete('maxPrice', debouncedMaxPrice);
-
         prev.delete('page');
         return prev;
       },
       { replace: true }
     );
-  }, [
-    debouncedSearchTerm,
-    debouncedMinPrice,
-    debouncedMaxPrice,
-    // setSearchParams,
-  ]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchTerm, debouncedMinPrice, debouncedMaxPrice]);
 
   useHotkeys([
-    [
-      '/',
-      () => {
-        searchInputRef.current?.focus();
-      },
-    ],
+    ['/', () => searchInputRef.current?.focus()],
     ['.', () => searchInputRef.current?.focus()],
   ]);
 
@@ -177,11 +157,7 @@ const AdListPage = () => {
         } else {
           prev.set(key, value);
         }
-
-        if (key !== 'page') {
-          prev.delete('page');
-        }
-
+        if (key !== 'page') prev.delete('page');
         return prev;
       },
       { replace: true }
@@ -201,18 +177,14 @@ const AdListPage = () => {
       GetAdsParams['sortOrder'],
     ];
 
-    const debouncedSearchFromURL = searchParams.get('search') || '';
-    const debouncedMinPriceFromURL = searchParams.get('minPrice') || '';
-    const debouncedMaxPriceFromURL = searchParams.get('maxPrice') || '';
-
     return {
       page,
       limit: 10,
-      search: debouncedSearchFromURL || undefined,
+      search: searchParams.get('search') || undefined,
       status: statusFilter.length > 0 ? statusFilter : undefined,
       categoryId: categoryFilter ? Number(categoryFilter) : undefined,
-      minPrice: Number(debouncedMinPriceFromURL) || undefined,
-      maxPrice: Number(debouncedMaxPriceFromURL) || undefined,
+      minPrice: Number(searchParams.get('minPrice')) || undefined,
+      maxPrice: Number(searchParams.get('maxPrice')) || undefined,
       sortBy,
       sortOrder,
     };
@@ -240,15 +212,22 @@ const AdListPage = () => {
     }
   };
 
+  // Only update NewAds provider on page 1
   useEffect(() => {
-    if (data?.ads && data.ads.length > 0) {
-      const newestTimestamp = data.ads.reduce(
-        (latest, ad) => (ad.createdAt > latest ? ad.createdAt : latest),
-        data.ads[0].createdAt
-      );
+    if (!data?.ads?.length) return;
+
+    const newestTimestamp = data.ads.reduce(
+      (latest, ad) => (ad.createdAt > latest ? ad.createdAt : latest),
+      data.ads[0].createdAt
+    );
+
+    if (page === 1) {
       setLatestAdTimestamp(newestTimestamp);
+      setPollingEnabled(true);
+    } else {
+      setPollingEnabled(false);
     }
-  }, [data, setLatestAdTimestamp]);
+  }, [data, page, setLatestAdTimestamp, setPollingEnabled]);
 
   if (isLoading) {
     return (
@@ -261,8 +240,7 @@ const AdListPage = () => {
   if (isError) {
     return (
       <Alert severity="error">
-        Error:{' '}
-        {error instanceof Error ? error.message : 'An unknown error occurred'}
+        Error: {error instanceof Error ? error.message : 'Unknown error'}
       </Alert>
     );
   }
@@ -270,6 +248,7 @@ const AdListPage = () => {
   return (
     <AnimatedPage>
       <Box>
+        {/* Top Filters and Actions */}
         <Box
           sx={{
             mb: 2,
@@ -289,13 +268,12 @@ const AdListPage = () => {
               label="Load Saved Filters"
               value={currentSelectedFilterSet}
               onChange={(e) => {
-                const selectedName = e.target.value as string;
-                if (selectedName) {
-                  const paramsString = savedFilters[selectedName];
+                const name = e.target.value as string;
+                if (name) {
+                  const paramsString = savedFilters[name];
                   setSearchParams(new URLSearchParams(paramsString), {
                     replace: true,
                   });
-
                   const newParams = new URLSearchParams(paramsString);
                   setLiveSearchTerm(newParams.get('search') || '');
                   setLiveMinPrice(newParams.get('minPrice') || '');
@@ -343,6 +321,7 @@ const AdListPage = () => {
           />
         </Box>
 
+        {/* Filters */}
         <AdFilters
           searchTerm={liveSearchTerm}
           onSearchChange={setLiveSearchTerm}
@@ -358,6 +337,7 @@ const AdListPage = () => {
           ref={searchInputRef}
         />
 
+        {/* Select All */}
         <FormControlLabel
           control={
             <Checkbox
@@ -376,18 +356,38 @@ const AdListPage = () => {
           </Typography>
         ) : (
           <>
-            <Grid container spacing={3} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
-              {ads.map((ad) => (
-                <Grid key={ad.id} size={{ xs: 12, sm: 6, md: 4 }} component={motion.div} variants={cardVariants}>
-                  <AdCard
-                    isSelected={selectedAds.includes(ad.id)}
-                    onToggleSelect={handleToggleSelect}
-                    ad={ad}
-                  />
-                </Grid>
-              ))}
+            {/* Ads Grid */}
+            <Grid
+              container
+              spacing={3}
+              component={motion.div}
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              // key={page}
+            >
+              <AnimatePresence>
+                {ads.map((ad) => (
+                  <Grid
+                    key={ad.id}
+                    size={{ xs: 12, sm: 6, md: 4 }}
+                    component={motion.div}
+                    variants={cardVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                  >
+                    <AdCard
+                      isSelected={selectedAds.includes(ad.id)}
+                      onToggleSelect={handleToggleSelect}
+                      ad={ad}
+                    />
+                  </Grid>
+                ))}
+              </AnimatePresence>
             </Grid>
 
+            {/* Pagination */}
             <Box
               sx={{
                 mt: 4,

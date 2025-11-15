@@ -23,6 +23,7 @@ import { ActivityChart } from '../components/ActivityChart';
 import { DecisionsChart } from '../components/DecisionsChart';
 import { CategoriesChart } from '../components/CategoriesChart';
 import { exportStatsToCSV, generatePdfReport } from '../utils/exportUtils';
+import { AnimatedPage } from '../components/AnimatedPage';
 
 const StatCard = ({
   title,
@@ -99,119 +100,121 @@ export const StatsPage = () => {
   }
 
   return (
-    <Box>
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 2,
-          mb: 3,
-        }}
-      >
-        <Typography variant="h4" component={'h1'}>
-          Moderator Statistics
-        </Typography>
-
-        <Stack direction="row" spacing={2}>
-          <Button
-            variant="outlined"
-            onClick={handleExportCSV}
-            disabled={isLoading}
-          >
-            Export to CSV
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleGeneratePDF}
-            disabled={isLoading}
-          >
-            Generate PDF Report
-          </Button>
-        </Stack>
-
-        <ToggleButtonGroup
-          value={period}
-          exclusive
-          onChange={handlePeriodChange}
-          aria-label="time period"
+    <AnimatedPage>
+      <Box>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 2,
+            mb: 3,
+          }}
         >
-          <ToggleButton value={'today'} aria-label="today">
-            Today
-          </ToggleButton>
-          <ToggleButton value={'week'} aria-label="this week">
-            7 days
-          </ToggleButton>
-          <ToggleButton value={'month'} aria-label="this month">
-            30 days
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </Box>
+          <Typography variant="h4" component={'h1'}>
+            Moderator Statistics
+          </Typography>
 
-      {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-          <CircularProgress />
+          <Stack direction="row" spacing={2}>
+            <Button
+              variant="outlined"
+              onClick={handleExportCSV}
+              disabled={isLoading}
+            >
+              Export to CSV
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleGeneratePDF}
+              disabled={isLoading}
+            >
+              Generate PDF Report
+            </Button>
+          </Stack>
+
+          <ToggleButtonGroup
+            value={period}
+            exclusive
+            onChange={handlePeriodChange}
+            aria-label="time period"
+          >
+            <ToggleButton value={'today'} aria-label="today">
+              Today
+            </ToggleButton>
+            <ToggleButton value={'week'} aria-label="this week">
+              7 days
+            </ToggleButton>
+            <ToggleButton value={'month'} aria-label="this month">
+              30 days
+            </ToggleButton>
+          </ToggleButtonGroup>
         </Box>
-      ) : (
-        <Grid container spacing={3}>
-          <Grid component={'div'} size={{ xs: 6, md: 3 }}>
-            <StatCard
-              title="Total Reviewed"
-              value={summaryQuery.data?.totalReviewed || 0}
-            ></StatCard>
-          </Grid>
-          <Grid component={'div'} size={{ xs: 6, md: 3 }}>
-            <StatCard
-              title="Approved"
-              value={`${summaryQuery.data?.approvedPercentage.toFixed(1) || 0}%`}
-            ></StatCard>
-          </Grid>
-          <Grid component={'div'} size={{ xs: 6, md: 3 }}>
-            <StatCard
-              title="Rejected"
-              value={`${summaryQuery.data?.rejectedPercentage.toFixed(1) || 0}%`}
-            ></StatCard>
-          </Grid>
-          <Grid component={'div'} size={{ xs: 6, md: 3 }}>
-            <StatCard
-              title="Avg. Review Time"
-              value={`${(summaryQuery.data!.averageReviewTime / 60).toFixed(1) || 0} min`}
-            ></StatCard>
-          </Grid>
 
-          <Grid component={'div'} size={{ xs: 12, lg: 12 }}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                Activity
-              </Typography>
-              {activityQuery.data && (
-                <ActivityChart data={activityQuery.data} />
-              )}
-            </Paper>
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Grid container spacing={3}>
+            <Grid component={'div'} size={{ xs: 6, md: 3 }}>
+              <StatCard
+                title="Total Reviewed"
+                value={summaryQuery.data?.totalReviewed || 0}
+              ></StatCard>
+            </Grid>
+            <Grid component={'div'} size={{ xs: 6, md: 3 }}>
+              <StatCard
+                title="Approved"
+                value={`${summaryQuery.data?.approvedPercentage.toFixed(1) || 0}%`}
+              ></StatCard>
+            </Grid>
+            <Grid component={'div'} size={{ xs: 6, md: 3 }}>
+              <StatCard
+                title="Rejected"
+                value={`${summaryQuery.data?.rejectedPercentage.toFixed(1) || 0}%`}
+              ></StatCard>
+            </Grid>
+            <Grid component={'div'} size={{ xs: 6, md: 3 }}>
+              <StatCard
+                title="Avg. Review Time"
+                value={`${(summaryQuery.data!.averageReviewTime / 60).toFixed(1) || 0} min`}
+              ></StatCard>
+            </Grid>
+
+            <Grid component={'div'} size={{ xs: 12, lg: 12 }}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Activity
+                </Typography>
+                {activityQuery.data && (
+                  <ActivityChart data={activityQuery.data} />
+                )}
+              </Paper>
+            </Grid>
+            <Grid component={'div'} size={{ xs: 12, lg: 6 }}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Decision Distribution
+                </Typography>
+                {decisionsQuery.data && (
+                  <DecisionsChart data={decisionsQuery.data} />
+                )}
+              </Paper>
+            </Grid>
+            <Grid component={'div'} size={{ xs: 12, lg: 6 }}>
+              <Paper sx={{ p: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Categories Distribution
+                </Typography>
+                {decisionsQuery.data && (
+                  <CategoriesChart data={categoriesQuery.data!} />
+                )}
+              </Paper>
+            </Grid>
           </Grid>
-          <Grid component={'div'} size={{ xs: 12, lg: 6 }}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                Decision Distribution
-              </Typography>
-              {decisionsQuery.data && (
-                <DecisionsChart data={decisionsQuery.data} />
-              )}
-            </Paper>
-          </Grid>
-          <Grid component={'div'} size={{ xs: 12, lg: 6 }}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                Categories Distribution
-              </Typography>
-              {decisionsQuery.data && (
-                <CategoriesChart data={categoriesQuery.data!} />
-              )}
-            </Paper>
-          </Grid>
-        </Grid>
-      )}
-    </Box>
+        )}
+      </Box>
+    </AnimatedPage>
   );
 };

@@ -32,6 +32,23 @@ import { BulkActionsBar } from '../components/BulkActionsBar';
 import { RejectAdModal } from '../components/RejectAdModal';
 import toast from 'react-hot-toast';
 import { useNewAds } from '../context/NewAdsContext';
+import { AnimatedPage } from '../components/AnimatedPage';
+import { motion } from 'framer-motion';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 },
+};
 
 const AdListPage = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -225,12 +242,12 @@ const AdListPage = () => {
 
   useEffect(() => {
     if (data?.ads && data.ads.length > 0) {
-    const newestTimestamp = data.ads.reduce((latest, ad) => 
-      ad.createdAt > latest ? ad.createdAt : latest,
-    data.ads[0].createdAt
-    );
-    setLatestAdTimestamp(newestTimestamp);
-  }
+      const newestTimestamp = data.ads.reduce(
+        (latest, ad) => (ad.createdAt > latest ? ad.createdAt : latest),
+        data.ads[0].createdAt
+      );
+      setLatestAdTimestamp(newestTimestamp);
+    }
   }, [data, setLatestAdTimestamp]);
 
   if (isLoading) {
@@ -251,169 +268,173 @@ const AdListPage = () => {
   }
 
   return (
-    <Box>
-      <Box
-        sx={{
-          mb: 2,
-          display: 'flex',
-          gap: 2,
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <Typography variant="h4" component="h1">
-          Advertisements
-        </Typography>
-        <FormControl size="small" sx={{ minWidth: 200 }}>
-          <InputLabel>Load Saved Filters</InputLabel>
-          <Select
-            label="Load Saved Filters"
-            value={currentSelectedFilterSet}
-            onChange={(e) => {
-              const selectedName = e.target.value as string;
-              if (selectedName) {
-                const paramsString = savedFilters[selectedName];
-                setSearchParams(new URLSearchParams(paramsString), {
-                  replace: true,
-                });
+    <AnimatedPage>
+      <Box>
+        <Box
+          sx={{
+            mb: 2,
+            display: 'flex',
+            gap: 2,
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <Typography variant="h4" component="h1">
+            Advertisements
+          </Typography>
+          <FormControl size="small" sx={{ minWidth: 200 }}>
+            <InputLabel>Load Saved Filters</InputLabel>
+            <Select
+              label="Load Saved Filters"
+              value={currentSelectedFilterSet}
+              onChange={(e) => {
+                const selectedName = e.target.value as string;
+                if (selectedName) {
+                  const paramsString = savedFilters[selectedName];
+                  setSearchParams(new URLSearchParams(paramsString), {
+                    replace: true,
+                  });
 
-                const newParams = new URLSearchParams(paramsString);
-                setLiveSearchTerm(newParams.get('search') || '');
-                setLiveMinPrice(newParams.get('minPrice') || '');
-                setLiveMaxPrice(newParams.get('maxPrice') || '');
+                  const newParams = new URLSearchParams(paramsString);
+                  setLiveSearchTerm(newParams.get('search') || '');
+                  setLiveMinPrice(newParams.get('minPrice') || '');
+                  setLiveMaxPrice(newParams.get('maxPrice') || '');
+                }
+              }}
+            >
+              {Object.entries(savedFilters).map(([name]) => (
+                <MenuItem key={name} value={name}>
+                  {name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Button
+            variant="contained"
+            onClick={() => {
+              const name = prompt('Enter a name for this filter set:');
+              if (name) {
+                const newSavedFilters = {
+                  ...savedFilters,
+                  [name]: searchParams.toString(),
+                };
+                setSavedFilters(newSavedFilters);
+                localStorage.setItem(
+                  'savedFilterSets',
+                  JSON.stringify(newSavedFilters)
+                );
               }
             }}
           >
-            {Object.entries(savedFilters).map(([name]) => (
-              <MenuItem key={name} value={name}>
-                {name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <Button
-          variant="contained"
-          onClick={() => {
-            const name = prompt('Enter a name for this filter set:');
-            if (name) {
-              const newSavedFilters = {
-                ...savedFilters,
-                [name]: searchParams.toString(),
-              };
-              setSavedFilters(newSavedFilters);
-              localStorage.setItem(
-                'savedFilterSets',
-                JSON.stringify(newSavedFilters)
-              );
-            }
-          }}
-        >
-          Save Current Filters
-        </Button>
-        <Button
-          onClick={() => {
-            setSavedFilters({});
-            localStorage.removeItem('savedFilterSets');
-          }}
-        >
-          Clear Saved Filters
-        </Button>
-        <AdSort
-          value={sortOption}
-          onChange={(val) => updateSearchParams('sort', val)}
+            Save Current Filters
+          </Button>
+          <Button
+            onClick={() => {
+              setSavedFilters({});
+              localStorage.removeItem('savedFilterSets');
+            }}
+          >
+            Clear Saved Filters
+          </Button>
+          <AdSort
+            value={sortOption}
+            onChange={(val) => updateSearchParams('sort', val)}
+          />
+        </Box>
+
+        <AdFilters
+          searchTerm={liveSearchTerm}
+          onSearchChange={setLiveSearchTerm}
+          statusFilter={statusFilter}
+          onStatusChange={(val) => updateSearchParams('status', val)}
+          categoryFilter={categoryFilter}
+          onCategoryChange={(val) => updateSearchParams('category', val)}
+          minPrice={liveMinPrice}
+          onMinPriceChange={setLiveMinPrice}
+          maxPrice={liveMaxPrice}
+          onMaxPriceChange={setLiveMaxPrice}
+          onReset={handleResetFilters}
+          ref={searchInputRef}
         />
-      </Box>
 
-      <AdFilters
-        searchTerm={liveSearchTerm}
-        onSearchChange={setLiveSearchTerm}
-        statusFilter={statusFilter}
-        onStatusChange={(val) => updateSearchParams('status', val)}
-        categoryFilter={categoryFilter}
-        onCategoryChange={(val) => updateSearchParams('category', val)}
-        minPrice={liveMinPrice}
-        onMinPriceChange={setLiveMinPrice}
-        maxPrice={liveMaxPrice}
-        onMaxPriceChange={setLiveMaxPrice}
-        onReset={handleResetFilters}
-        ref={searchInputRef}
-      />
-
-      <FormControlLabel
-        control={
-          <Checkbox
-            checked={areAllOnPageSelected}
-            indeterminate={selectedAds.length > 0 && !areAllOnPageSelected}
-            onChange={handleSelectAll}
-          />
-        }
-        label="Select all on page"
-        sx={{ mb: 2 }}
-      />
-
-      {ads.length === 0 ? (
-        <Typography>No advertisements found matching your criteria.</Typography>
-      ) : (
-        <>
-          <Grid container spacing={3}>
-            {ads.map((ad) => (
-              <Grid key={ad.id} size={{ xs: 12, sm: 6, md: 4 }}>
-                <AdCard
-                  isSelected={selectedAds.includes(ad.id)}
-                  onToggleSelect={handleToggleSelect}
-                  ad={ad}
-                />
-              </Grid>
-            ))}
-          </Grid>
-
-          <Box
-            sx={{
-              mt: 4,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 2,
-              justifyContent: 'center',
-            }}
-          >
-            <MuiPagination
-              count={paginationInfo?.totalPages || 1}
-              page={page}
-              onChange={(_e, value) =>
-                updateSearchParams('page', value.toString())
-              }
-              color="primary"
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={areAllOnPageSelected}
+              indeterminate={selectedAds.length > 0 && !areAllOnPageSelected}
+              onChange={handleSelectAll}
             />
-            {paginationInfo && (
-              <Typography
-                sx={{ mb: 17 }}
-                variant="body1"
-                color="text.secondary"
-              >
-                Showing {ads.length} of {paginationInfo.totalItems}
-              </Typography>
+          }
+          label="Select all on page"
+          sx={{ mb: 2 }}
+        />
+
+        {ads.length === 0 ? (
+          <Typography>
+            No advertisements found matching your criteria.
+          </Typography>
+        ) : (
+          <>
+            <Grid container spacing={3} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
+              {ads.map((ad) => (
+                <Grid key={ad.id} size={{ xs: 12, sm: 6, md: 4 }} component={motion.div} variants={cardVariants}>
+                  <AdCard
+                    isSelected={selectedAds.includes(ad.id)}
+                    onToggleSelect={handleToggleSelect}
+                    ad={ad}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+
+            <Box
+              sx={{
+                mt: 4,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 2,
+                justifyContent: 'center',
+              }}
+            >
+              <MuiPagination
+                count={paginationInfo?.totalPages || 1}
+                page={page}
+                onChange={(_e, value) =>
+                  updateSearchParams('page', value.toString())
+                }
+                color="primary"
+              />
+              {paginationInfo && (
+                <Typography
+                  sx={{ mb: 17 }}
+                  variant="body1"
+                  color="text.secondary"
+                >
+                  Showing {ads.length} of {paginationInfo.totalItems}
+                </Typography>
+              )}
+            </Box>
+
+            {selectedAds.length > 0 && (
+              <BulkActionsBar
+                selectedCount={selectedAds.length}
+                onApprove={() => bulkApproveMutation.mutate()}
+                onReject={() => setIsRejectModalOpen(true)}
+                onClear={() => setSelectedAds([])}
+              />
             )}
-          </Box>
 
-          {selectedAds.length > 0 && (
-            <BulkActionsBar
-              selectedCount={selectedAds.length}
-              onApprove={() => bulkApproveMutation.mutate()}
-              onReject={() => setIsRejectModalOpen(true)}
-              onClear={() => setSelectedAds([])}
+            <RejectAdModal
+              open={isRejectModalOpen}
+              onClose={() => setIsRejectModalOpen(false)}
+              onSubmit={handleBulkRejectionSubmit}
             />
-          )}
-
-          <RejectAdModal
-            open={isRejectModalOpen}
-            onClose={() => setIsRejectModalOpen(false)}
-            onSubmit={handleBulkRejectionSubmit}
-          />
-        </>
-      )}
-    </Box>
+          </>
+        )}
+      </Box>
+    </AnimatedPage>
   );
 };
 

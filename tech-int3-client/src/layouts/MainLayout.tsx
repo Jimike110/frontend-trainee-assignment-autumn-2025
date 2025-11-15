@@ -1,4 +1,8 @@
-import { NavLink as RouterNavLink, Outlet } from 'react-router-dom';
+import {
+  NavLink as RouterNavLink,
+  Outlet,
+  useLocation,
+} from 'react-router-dom';
 import {
   AppBar,
   Box,
@@ -13,10 +17,12 @@ import { Toaster } from 'react-hot-toast';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
 import { useTheme } from '../context/ThemeContext';
 import { useNewAds } from '../context/NewAdsContext';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export const MainLayout = () => {
   const { mode, toggleTheme } = useTheme();
   const { newAdsCount, triggerRefetch } = useNewAds();
+  const location = useLocation();
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -66,7 +72,11 @@ export const MainLayout = () => {
         </Toolbar>
       </AppBar>
       <Container component="main" sx={{ p: 3, mt: 8 }}>
-        <Outlet />
+        <AnimatePresence mode="wait">
+          <motion.div key={location.pathname}>
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </Container>
     </Box>
   );

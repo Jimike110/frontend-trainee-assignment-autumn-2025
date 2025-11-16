@@ -57,7 +57,9 @@ describe('AdFilters component', () => {
       />
     );
 
-    const resetButton = screen.getByRole('button', { name: /Reset All Filters/i });
+    const resetButton = screen.getByRole('button', {
+      name: /Reset All Filters/i,
+    });
     await user.click(resetButton);
 
     expect(onReset).toHaveBeenCalledTimes(1);

@@ -315,8 +315,14 @@ const AdDetailPage = () => {
                     <Divider sx={{ my: 2 }} />
                     <InfoItem label="Имя" value={ad.seller.name} />
                     <InfoItem label="Рейтинг" value={`${ad.seller.rating} ★`} />
-                    <InfoItem label="Количество объявлений" value={ad.seller.totalAds} />
-                    <InfoItem label="Дата регистрации" value={ad.seller.registeredAt.split('T')[0]} />
+                    <InfoItem
+                      label="Количество объявлений"
+                      value={ad.seller.totalAds}
+                    />
+                    <InfoItem
+                      label="Дата регистрации"
+                      value={ad.seller.registeredAt.split('T')[0]}
+                    />
                   </Paper>
                 </Grid>
                 <Grid

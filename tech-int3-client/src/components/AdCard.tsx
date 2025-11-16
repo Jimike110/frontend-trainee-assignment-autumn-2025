@@ -89,9 +89,7 @@ export const AdCard = ({ ad, isSelected, onToggleSelect }: AdCardProps) => {
               size="small"
             />
           </Box>
-          <Button size="small">
-            Открыть
-          </Button>
+          <Button size="small">Открыть</Button>
         </Box>
       </RouterLink>
     </Card>

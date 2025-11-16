@@ -101,7 +101,9 @@ export const AdFilters = forwardRef<HTMLDivElement, AdFiltersProps>(
                   ? 'Enter at least 3 characters'
                   : ''
               }
-              error={searchTerm.trim().length > 0 && searchTerm.trim().length < 3}
+              error={
+                searchTerm.trim().length > 0 && searchTerm.trim().length < 3
+              }
             />
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
@@ -153,7 +155,9 @@ export const AdFilters = forwardRef<HTMLDivElement, AdFiltersProps>(
           <Grid size={{ xs: 12, md: 8 }}>
             <Typography gutterBottom>Price Range</Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, px: 1 }}>
-              <Typography sx={{ minWidth: 80}}>{priceValue[0].toLocaleString()} ₽</Typography>
+              <Typography sx={{ minWidth: 80 }}>
+                {priceValue[0].toLocaleString()} ₽
+              </Typography>
               <Slider
                 value={priceValue}
                 onChange={(_, newValue) => handlePriceChange(newValue)}
@@ -163,7 +167,9 @@ export const AdFilters = forwardRef<HTMLDivElement, AdFiltersProps>(
                 step={1000}
                 disableSwap
               />
-              <Typography sx={{ minWidth: 80}}>{priceValue[1].toLocaleString()} ₽</Typography>
+              <Typography sx={{ minWidth: 80 }}>
+                {priceValue[1].toLocaleString()} ₽
+              </Typography>
             </Box>
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
@@ -180,4 +186,4 @@ export const AdFilters = forwardRef<HTMLDivElement, AdFiltersProps>(
       </Box>
     );
   }
-)
+);

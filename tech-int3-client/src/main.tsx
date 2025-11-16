@@ -6,17 +6,20 @@ import App from './App.tsx';
 import { CustomThemeProvider } from './components/CustomThemeProvider.tsx';
 import { NewAdsProvider } from './components/NewAdsProvider.tsx';
 import 'nprogress/nprogress.css';
+import ErrorBoundary from './components/ErrorBoundary.tsx';
 
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <CustomThemeProvider>
-        <NewAdsProvider>
-          <App />
-        </NewAdsProvider>
-      </CustomThemeProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <CustomThemeProvider>
+          <NewAdsProvider>
+            <App />
+          </NewAdsProvider>
+        </CustomThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   </StrictMode>
 );

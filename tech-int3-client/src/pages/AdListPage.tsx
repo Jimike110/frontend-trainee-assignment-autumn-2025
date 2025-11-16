@@ -83,38 +83,6 @@ const AdListPage = () => {
     return foundEntry ? foundEntry[0] : '';
   }, [searchParams, savedFilters]);
 
-  const bulkApproveMutation = useMutation({
-    mutationFn: () => approveMultipleAds(selectedAds),
-    onSuccess: () => {
-      toast.success(`${selectedAds.length} ad(s) approved successfully.`);
-      setSelectedAds([]);
-      queryClient.invalidateQueries({ queryKey: ['ads'] });
-    },
-    onError: () => toast.error('An error occurred during bulk approval.'),
-  });
-
-  const bulkRejectMutation = useMutation({
-    mutationFn: (payload: { reason: string; comment?: string }) =>
-      rejectMultipleAds(selectedAds, payload),
-    onSuccess: () => {
-      toast.success(`${selectedAds.length} ad(s) rejected successfully.`);
-      setSelectedAds([]);
-      queryClient.invalidateQueries({ queryKey: ['ads'] });
-    },
-    onError: () => toast.error('An error occurred during bulk rejection.'),
-  });
-
-  const handleBulkRejectionSubmit = (reason: string, comment?: string) => {
-    bulkRejectMutation.mutate({ reason, comment });
-    setIsRejectModalOpen(false);
-  };
-
-  const handleToggleSelect = (id: number) => {
-    setSelectedAds((prev) =>
-      prev.includes(id) ? prev.filter((adId) => adId !== id) : [...prev, id]
-    );
-  };
-
   const debouncedSearchTerm = useDebounce(liveSearchTerm, 500);
   const debouncedMinPrice = useDebounce(liveMinPrice, 500);
   const debouncedMaxPrice = useDebounce(liveMaxPrice, 500);
@@ -219,6 +187,60 @@ const AdListPage = () => {
       const pageIds = ads.map((ad) => ad.id);
       setSelectedAds((prev) => [...new Set([...prev, ...pageIds])]);
     }
+  };
+
+  const adsMap = useMemo(() => new Map(ads.map((ad) => [ad.id, ad])), [ads]);
+
+  // Get the list of selected ad IDs that are NOT already approved.
+  const idsToApprove = selectedAds.filter((id) => {
+    const ad = adsMap.get(id);
+    return ad && ad.status !== 'approved';
+  });
+
+  // Get the list of selected ad IDs that are NOT already rejected.
+  const idsToReject = selectedAds.filter((id) => {
+    const ad = adsMap.get(id);
+    return ad && ad.status !== 'rejected';
+  });
+
+  const bulkApproveMutation = useMutation({
+    mutationFn: () => approveMultipleAds(idsToApprove),
+    onSuccess: () => {
+      if (idsToApprove.length > 0) {
+        toast.success(`${idsToApprove.length} ad(s) approved successfully.`);
+      } else {
+        toast.error('No ads were eligible for approval.');
+      }
+      setSelectedAds([]);
+      queryClient.invalidateQueries({ queryKey: ['ads'] });
+    },
+    onError: () => toast.error('An error occurred during bulk approval.'),
+  });
+
+  const bulkRejectMutation = useMutation({
+    mutationFn: (payload: { reason: string; comment?: string }) =>
+      rejectMultipleAds(idsToReject, payload),
+    onSuccess: () => {
+      if (idsToReject.length > 0) {
+        toast.success(`${idsToReject.length} ad(s) rejected successfully.`);
+      } else {
+        toast.error('No ads were eligible for rejection.');
+      }
+      setSelectedAds([]);
+      queryClient.invalidateQueries({ queryKey: ['ads'] });
+    },
+    onError: () => toast.error('An error occurred during bulk rejection.'),
+  });
+
+  const handleBulkRejectionSubmit = (reason: string, comment?: string) => {
+    bulkRejectMutation.mutate({ reason, comment });
+    setIsRejectModalOpen(false);
+  };
+
+  const handleToggleSelect = (id: number) => {
+    setSelectedAds((prev) =>
+      prev.includes(id) ? prev.filter((adId) => adId !== id) : [...prev, id]
+    );
   };
 
   // Only update NewAds provider on page 1
@@ -355,45 +377,48 @@ const AdListPage = () => {
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
             <CircularProgress />
           </Box>
-        ) : 
-
-        ads.length === 0 ? (
+        ) : ads.length === 0 ? (
           <Typography>
             No advertisements found matching your criteria.
           </Typography>
         ) : (
           <>
             {/* Ads Grid */}
-            <Box sx={{ opacity: isFetching ? 0.7 : 1, transition: 'opacity 300ms' }}>
-            <Grid
-              container
-              spacing={3}
-              component={motion.div}
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              // key={page}
+            <Box
+              sx={{
+                opacity: isFetching ? 0.7 : 1,
+                transition: 'opacity 300ms',
+              }}
             >
-              <AnimatePresence>
-                {ads.map((ad) => (
-                  <Grid
-                    key={ad.id}
-                    size={{ xs: 12, sm: 6, md: 4 }}
-                    component={motion.div}
-                    variants={cardVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                  >
-                    <AdCard
-                      isSelected={selectedAds.includes(ad.id)}
-                      onToggleSelect={handleToggleSelect}
-                      ad={ad}
-                    />
-                  </Grid>
-                ))}
-              </AnimatePresence>
-            </Grid>
+              <Grid
+                container
+                spacing={3}
+                component={motion.div}
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                // key={page}
+              >
+                <AnimatePresence>
+                  {ads.map((ad) => (
+                    <Grid
+                      key={ad.id}
+                      size={{ xs: 12, sm: 6, md: 4 }}
+                      component={motion.div}
+                      variants={cardVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                    >
+                      <AdCard
+                        isSelected={selectedAds.includes(ad.id)}
+                        onToggleSelect={handleToggleSelect}
+                        ad={ad}
+                      />
+                    </Grid>
+                  ))}
+                </AnimatePresence>
+              </Grid>
             </Box>
 
             {/* Pagination */}

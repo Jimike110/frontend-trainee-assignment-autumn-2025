@@ -27,9 +27,9 @@ const generateMockAds = (count) => {
       createdAt: createdAt.toISOString(),
       updatedAt: createdAt.toISOString(),
       images: [
-        `https://placehold.co/300x200/cccccc/969696?text=Image+${i}-1`,
-        `https://placehold.co/300x200/cccccc/969696?text=Image+${i}-2`,
-        `https://placehold.co/300x200/cccccc/969696?text=Image+${i}-3`
+        `https://placeholder.pagebee.io/api/plain/400/300?text=Image+${i}-1&bg=cccccc&color=969696`,
+        `https://placeholder.pagebee.io/api/plain/400/300?text=Image+${i}-2&bg=cccccc&color=969696`,
+        `https://placeholder.pagebee.io/api/plain/400/300?text=Image+${i}-3&bg=cccccc&color=969696`,
       ],
       seller: {
         id: Math.floor(Math.random() * 1000) + 1,

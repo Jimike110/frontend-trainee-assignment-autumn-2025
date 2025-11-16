@@ -313,9 +313,10 @@ const AdDetailPage = () => {
                       Seller Information
                     </Typography>
                     <Divider sx={{ my: 2 }} />
-                    <InfoItem label="Name" value={ad.seller.name} />
-                    <InfoItem label="Rating" value={`${ad.seller.rating} ★`} />
-                    <InfoItem label="Total Ads" value={ad.seller.totalAds} />
+                    <InfoItem label="Имя" value={ad.seller.name} />
+                    <InfoItem label="Рейтинг" value={`${ad.seller.rating} ★`} />
+                    <InfoItem label="Количество объявлений" value={ad.seller.totalAds} />
+                    <InfoItem label="Дата регистрации" value={ad.seller.registeredAt.split('T')[0]} />
                   </Paper>
                 </Grid>
                 <Grid
@@ -359,7 +360,7 @@ const AdDetailPage = () => {
               <CircularProgress size={24} />
             ) : (
               <>
-              {!isSm && <Keycap variant="filled">A</Keycap>}
+                {!isSm && <Keycap variant="filled">A</Keycap>}
                 Одобрить
               </>
             )}

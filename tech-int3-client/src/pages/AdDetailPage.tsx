@@ -16,6 +16,8 @@ import {
   Button,
   Divider,
   Chip,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import { ArrowBack, ArrowForward } from '@mui/icons-material';
 import Carousel from '../components/Carousel';
@@ -60,6 +62,9 @@ const AdDetailPage = () => {
 
   const [isRejectModalOpen, setRejectModalOpen] = useState(false);
   const [isReturnModalOpen, setReturnModalOpen] = useState(false);
+
+  const theme = useTheme();
+  const isSm = useMediaQuery(theme.breakpoints.down('sm'));
 
   const {
     data: ad,
@@ -354,7 +359,7 @@ const AdDetailPage = () => {
               <CircularProgress size={24} />
             ) : (
               <>
-                <Keycap variant="filled">A</Keycap>
+              {!isSm && <Keycap variant="filled">A</Keycap>}
                 Одобрить
               </>
             )}
@@ -371,7 +376,7 @@ const AdDetailPage = () => {
               <CircularProgress size={24} />
             ) : (
               <>
-                <Keycap variant="filled">D</Keycap>
+                {!isSm && <Keycap variant="filled">D</Keycap>}
                 Отклонить
               </>
             )}
@@ -408,6 +413,7 @@ const AdDetailPage = () => {
             sx={{
               display: 'flex',
               gap: 4,
+              flexWrap: 'wrap',
               flex: { xs: '1 0 100%', sm: 'auto' },
               justifyContent: { xs: 'space-between', sm: 'flex-end' },
             }}
@@ -417,9 +423,11 @@ const AdDetailPage = () => {
               variant="outlined"
               onClick={() => handleNavigate('prev')}
             >
-              <Keycap variant="filled">
-                <ArrowBack />
-              </Keycap>
+              {!isSm && (
+                <Keycap variant="filled">
+                  <ArrowBack />
+                </Keycap>
+              )}
               Предыдущее
             </Button>
             <Button
@@ -428,9 +436,11 @@ const AdDetailPage = () => {
               onClick={() => handleNavigate('next')}
             >
               Следующее
-              <Keycap variant="filled">
-                <ArrowForward />
-              </Keycap>
+              {!isSm && (
+                <Keycap variant="filled">
+                  <ArrowForward />
+                </Keycap>
+              )}
             </Button>
           </Box>
         </Box>

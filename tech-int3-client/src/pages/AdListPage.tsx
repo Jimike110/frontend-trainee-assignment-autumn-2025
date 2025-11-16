@@ -225,7 +225,7 @@ const AdListPage = () => {
       setLatestAdTimestamp(newestTimestamp);
       setPollingEnabled(true);
     } else {
-      setPollingEnabled(false);
+      // setPollingEnabled(false);
     }
   }, [data, page, setLatestAdTimestamp, setPollingEnabled]);
 

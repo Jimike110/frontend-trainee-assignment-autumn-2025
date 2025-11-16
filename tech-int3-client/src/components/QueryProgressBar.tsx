@@ -3,7 +3,6 @@ import NProgress from 'nprogress';
 import { useIsFetching } from '@tanstack/react-query';
 
 export const QueryProgressBar = () => {
-  // useIsFetching is a global hook that returns the number of queries currently fetching.
   const isFetching = useIsFetching();
 
   useEffect(() => {

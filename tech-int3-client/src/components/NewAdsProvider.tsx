@@ -19,7 +19,6 @@ export const NewAdsProvider = ({ children }: NewAdsProviderProps) => {
   const { data: newAdsCountData } = useQuery({
     queryKey: ['newAdsCount', latestAdTimestamp],
     queryFn: () => getNewAdsCount(latestAdTimestamp ?? ''),
-    // Only poll when we have a timestamp and polling is enabled
     enabled: Boolean(latestAdTimestamp) && isPollingEnabled,
     refetchInterval: 5000,
     refetchOnWindowFocus: false,
@@ -30,17 +29,12 @@ export const NewAdsProvider = ({ children }: NewAdsProviderProps) => {
   const newAdsCount = newAdsCountData?.newCount ?? 0;
 
   const triggerRefetch = useCallback(() => {
-    // Invalidate the ads list so UI fetches fresh data immediately
     queryClient.invalidateQueries({ queryKey: ['ads'] });
 
-    // Reset the count in the query cache and pause polling briefly to avoid
-    // immediate re-trigger from the provider side.
     queryClient.setQueryData(['newAdsCount', latestAdTimestamp], {
       newCount: 0,
     });
     setIsPollingEnabled(false);
-    // Re-enable after a short delay to resume background polling (optional)
-    // setTimeout(() => setIsPollingEnabled(true), 1000);
   }, [queryClient, latestAdTimestamp]);
 
   const updateLatestTimestamp = useCallback((timestamp: string | null) => {

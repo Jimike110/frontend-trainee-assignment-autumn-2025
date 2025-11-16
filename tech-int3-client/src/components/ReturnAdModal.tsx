@@ -27,7 +27,6 @@ interface ReturnAdModalProps {
   onSubmit: (reason: string, comment?: string) => void;
 }
 
-// TODO: Add keyboard choosing of reasons and enter should submit the form
 export const ReturnAdModal = ({
   open,
   onClose,

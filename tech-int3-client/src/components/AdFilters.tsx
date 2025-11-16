@@ -29,7 +29,7 @@ interface AdFiltersProps {
   onReset: () => void;
 }
 
-const statuses: Status[] = ['pending', 'approved', 'rejected'];
+const statuses: Status[] = ['pending', 'approved', 'rejected', 'draft'];
 
 export const AdFilters = forwardRef<HTMLDivElement, AdFiltersProps>(
   (

@@ -190,7 +190,7 @@ const AdListPage = () => {
     };
   }, [searchParams, statusFilter, categoryFilter, page, sortOption]);
 
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isFetching, isError, error } = useQuery({
     queryKey: ['ads', queryParams],
     queryFn: () => getAds(queryParams),
     placeholderData: keepPreviousData,
@@ -229,7 +229,7 @@ const AdListPage = () => {
     }
   }, [data, page, setLatestAdTimestamp, setPollingEnabled]);
 
-  if (isLoading) {
+  if (isFetching) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
         <CircularProgress />

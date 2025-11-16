@@ -73,10 +73,10 @@ export const StatsPage = () => {
   });
 
   const isLoading =
-    summaryQuery.isLoading ||
-    activityQuery.isLoading ||
-    decisionsQuery.isLoading ||
-    categoriesQuery.isLoading;
+    summaryQuery.isFetching ||
+    activityQuery.isFetching ||
+    decisionsQuery.isFetching ||
+    categoriesQuery.isFetching;
   const isError =
     summaryQuery.isError ||
     activityQuery.isError ||

@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: ./tech-int3-server 
+    container_name: moderation_server
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./tech-int3-client
+    container_name: moderation_client
+    ports:
+      - "8080:80"
+    depends_on:
+      - server
+    restart: unless-stopped

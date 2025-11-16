@@ -173,7 +173,7 @@ const AdListPage = () => {
     placeholderData: keepPreviousData,
   });
 
-  const ads = data?.ads || [];
+  const ads = useMemo(() => data?.ads || [], [data]);
   const paginationInfo = data?.pagination;
   const areAllOnPageSelected =
     ads.length > 0 && ads.every((ad) => selectedAds.includes(ad.id));

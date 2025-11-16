@@ -70,7 +70,7 @@ export const AdFilters = forwardRef<HTMLDivElement, AdFiltersProps>(
               InputProps={{
                 endAdornment: <Keycap variant="outlined">/</Keycap>,
               }}
-              value={searchTerm}
+              value={searchTerm || ''}
               onChange={(e) => onSearchChange(e.target.value)}
               inputRef={ref}
             />

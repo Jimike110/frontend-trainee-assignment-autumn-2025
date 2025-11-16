@@ -177,20 +177,29 @@ const AdListPage = () => {
       GetAdsParams['sortOrder'],
     ];
 
+    const searchFromURL = searchParams.get('search') || '';
+    const minPriceFromURL = searchParams.get('minPrice') || '';
+    const maxPriceFromURL = searchParams.get('maxPrice') || '';
+
+    const trimmedSearch = searchFromURL.trim();
+    // ограничение от 3 символов
+    const effectiveSearchTerm =
+      trimmedSearch.length >= 3 ? trimmedSearch : undefined;
+
     return {
       page,
       limit: 10,
-      search: searchParams.get('search') || undefined,
+      search: effectiveSearchTerm,
       status: statusFilter.length > 0 ? statusFilter : undefined,
       categoryId: categoryFilter ? Number(categoryFilter) : undefined,
-      minPrice: Number(searchParams.get('minPrice')) || undefined,
-      maxPrice: Number(searchParams.get('maxPrice')) || undefined,
+      minPrice: Number(minPriceFromURL) || undefined,
+      maxPrice: Number(maxPriceFromURL) || undefined,
       sortBy,
       sortOrder,
     };
   }, [searchParams, statusFilter, categoryFilter, page, sortOption]);
 
-  const { data, isFetching, isError, error } = useQuery({
+  const { data, isFetching, isLoading, isError, error } = useQuery({
     queryKey: ['ads', queryParams],
     queryFn: () => getAds(queryParams),
     placeholderData: keepPreviousData,
@@ -225,17 +234,9 @@ const AdListPage = () => {
       setLatestAdTimestamp(newestTimestamp);
       setPollingEnabled(true);
     } else {
-      // setPollingEnabled(false);
+      setPollingEnabled(false);
     }
   }, [data, page, setLatestAdTimestamp, setPollingEnabled]);
-
-  if (isFetching) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   if (isError) {
     return (
@@ -350,13 +351,20 @@ const AdListPage = () => {
           sx={{ mb: 2 }}
         />
 
-        {ads.length === 0 ? (
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : 
+
+        ads.length === 0 ? (
           <Typography>
             No advertisements found matching your criteria.
           </Typography>
         ) : (
           <>
             {/* Ads Grid */}
+            <Box sx={{ opacity: isFetching ? 0.7 : 1, transition: 'opacity 300ms' }}>
             <Grid
               container
               spacing={3}
@@ -386,6 +394,7 @@ const AdListPage = () => {
                 ))}
               </AnimatePresence>
             </Grid>
+            </Box>
 
             {/* Pagination */}
             <Box
@@ -405,6 +414,7 @@ const AdListPage = () => {
                   updateSearchParams('page', value.toString())
                 }
                 color="primary"
+                disabled={isFetching}
               />
               {paginationInfo && (
                 <Typography

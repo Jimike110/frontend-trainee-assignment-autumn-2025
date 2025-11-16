@@ -7,9 +7,13 @@ import {
   FormControl,
   InputLabel,
   OutlinedInput,
-  type SelectChangeEvent,
   Grid,
   Button,
+  Slider,
+  FormControlLabel,
+  Checkbox,
+  Typography,
+  FormGroup,
 } from '@mui/material';
 import type { Status } from '../types';
 import { CATEGORIES } from '../config/constants';
@@ -31,6 +35,8 @@ interface AdFiltersProps {
 
 const statuses: Status[] = ['pending', 'approved', 'rejected', 'draft'];
 
+const MAX_PRICE = 150000;
+
 export const AdFilters = forwardRef<HTMLDivElement, AdFiltersProps>(
   (
     {
@@ -48,34 +54,57 @@ export const AdFilters = forwardRef<HTMLDivElement, AdFiltersProps>(
     }: AdFiltersProps,
     ref
   ) => {
-    const handleStatusChange = (
-      event: SelectChangeEvent<typeof statusFilter>
-    ) => {
-      const {
-        target: { value },
-      } = event;
-      onStatusChange(
-        typeof value === 'string' ? (value.split(',') as Status[]) : value
-      );
+    const handleStatusChange = (status: Status, isChecked: boolean) => {
+      const newStatusFilter = isChecked
+        ? [...statusFilter, status]
+        : statusFilter.filter((s) => s !== status);
+      onStatusChange(newStatusFilter);
     };
 
+    const handlePriceChange = (newValue: number | number[]) => {
+      if (Array.isArray(newValue)) {
+        onMinPriceChange(newValue[0].toString());
+        onMaxPriceChange(newValue[1].toString());
+      }
+    };
+
+    const priceValue: [number, number] = [
+      Number(minPrice) || 0,
+      Number(maxPrice) || MAX_PRICE,
+    ];
+
     return (
-      <Box component="div" sx={{ mb: 4 }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid container size={{ xs: 12, md: 6, lg: 4 }}>
+      <Box
+        component="div"
+        sx={{
+          mb: 4,
+          p: 2,
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 1,
+        }}
+      >
+        <Grid container spacing={3} alignItems="center">
+          <Grid size={{ xs: 12, md: 8 }}>
             <TextField
               fullWidth
               variant="outlined"
-              placeholder="Search by title"
+              placeholder="Search by title (3+ characters)"
               InputProps={{
                 endAdornment: <Keycap variant="outlined">/</Keycap>,
               }}
               value={searchTerm || ''}
               onChange={(e) => onSearchChange(e.target.value)}
               inputRef={ref}
+              helperText={
+                searchTerm.trim().length > 0 && searchTerm.trim().length < 3
+                  ? 'Enter at least 3 characters'
+                  : ''
+              }
+              error={searchTerm.trim().length > 0 && searchTerm.trim().length < 3}
             />
           </Grid>
-          <Grid container size={{ xs: 12, md: 6, lg: 3 }}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <FormControl fullWidth>
               <InputLabel id="category-filter-label">Category</InputLabel>
               <Select
@@ -95,57 +124,60 @@ export const AdFilters = forwardRef<HTMLDivElement, AdFiltersProps>(
               </Select>
             </FormControl>
           </Grid>
-          <Grid container size={{ xs: 12, md: 6, lg: 5 }}>
-            <FormControl fullWidth>
-              <InputLabel id="status-filter-label">Status</InputLabel>
-              <Select
-                labelId="status-filter-label"
-                multiple
-                value={statusFilter}
-                onChange={handleStatusChange}
-                input={<OutlinedInput label="Status" />}
-                renderValue={(selected) => selected.join(', ')}
-              >
+
+          <Grid size={{ xs: 12 }}>
+            <FormControl component="fieldset" variant="standard">
+              <Typography component="legend" variant="body2" sx={{ mb: 1 }}>
+                Status
+              </Typography>
+              <FormGroup row>
                 {statuses.map((status) => (
-                  <MenuItem key={status} value={status}>
-                    {status}
-                  </MenuItem>
+                  <FormControlLabel
+                    key={status}
+                    control={
+                      <Checkbox
+                        checked={statusFilter.includes(status)}
+                        onChange={(e) =>
+                          handleStatusChange(status, e.target.checked)
+                        }
+                        name={status}
+                      />
+                    }
+                    label={status.charAt(0).toUpperCase() + status.slice(1)}
+                  />
                 ))}
-              </Select>
+              </FormGroup>
             </FormControl>
           </Grid>
-          <Grid container size={{ xs: 6, md: 3, lg: 2 }}>
-            <TextField
-              fullWidth
-              label="Min price"
-              variant="outlined"
-              type="number"
-              value={minPrice}
-              onChange={(e) => onMinPriceChange(e.target.value)}
-            />
+
+          <Grid size={{ xs: 12, md: 8 }}>
+            <Typography gutterBottom>Price Range</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, px: 1 }}>
+              <Typography sx={{ minWidth: 80}}>{priceValue[0].toLocaleString()} ₽</Typography>
+              <Slider
+                value={priceValue}
+                onChange={(_, newValue) => handlePriceChange(newValue)}
+                valueLabelDisplay="auto"
+                min={0}
+                max={MAX_PRICE}
+                step={1000}
+                disableSwap
+              />
+              <Typography sx={{ minWidth: 80}}>{priceValue[1].toLocaleString()} ₽</Typography>
+            </Box>
           </Grid>
-          <Grid container size={{ xs: 6, md: 3, lg: 2 }}>
-            <TextField
-              fullWidth
-              label="Max price"
-              variant="outlined"
-              type="number"
-              value={maxPrice}
-              onChange={(e) => onMaxPriceChange(e.target.value)}
-            />
-          </Grid>
-          <Grid container size={{ xs: 12, md: 6, lg: 2 }}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Button
               fullWidth
               variant="outlined"
               onClick={onReset}
-              sx={{ height: '56px' }}
+              sx={{ height: '56px', mt: { xs: 2, md: 0 } }}
             >
-              Reset Filters
+              Reset All Filters
             </Button>
           </Grid>
         </Grid>
       </Box>
     );
   }
-);
+)

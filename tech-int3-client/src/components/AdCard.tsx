@@ -43,7 +43,7 @@ export const AdCard = ({ ad, isSelected, onToggleSelect }: AdCardProps) => {
         <Checkbox
           checked={isSelected}
           onChange={handleCheckboxChange}
-          color='info'
+          color="info"
           sx={{
             '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.5)' },
           }}

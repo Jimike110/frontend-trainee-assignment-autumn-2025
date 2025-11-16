@@ -68,7 +68,7 @@ export const AdFilters = forwardRef<HTMLDivElement, AdFiltersProps>(
               variant="outlined"
               placeholder="Search by title"
               InputProps={{
-                endAdornment: <Keycap variant='outlined'>/</Keycap>,
+                endAdornment: <Keycap variant="outlined">/</Keycap>,
               }}
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}

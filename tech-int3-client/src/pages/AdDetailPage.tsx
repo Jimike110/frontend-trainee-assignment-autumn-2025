@@ -19,13 +19,19 @@ import {
 } from '@mui/material';
 import { ArrowBack, ArrowForward } from '@mui/icons-material';
 import Carousel from '../components/Carousel';
-import { approveAd, getAdById, rejectAd } from '../api/adsApi';
+import {
+  approveAd,
+  getAdById,
+  rejectAd,
+  returnAdForChanges,
+} from '../api/adsApi';
 import toast from 'react-hot-toast';
 import { priorityColors, statusColors } from '../utils/Colors';
 import { RejectAdModal } from '../components/RejectAdModal';
 import { useHotkeys, type HotkeyConfig } from '../hooks/useHotkeys';
 import Keycap from '../components/Keycap';
 import { AnimatedPage } from '../components/AnimatedPage';
+import { ReturnAdModal } from '../components/ReturnAdModal';
 
 // helper component for displaying label-value pairs
 const InfoItem = ({
@@ -53,6 +59,7 @@ const AdDetailPage = () => {
   const { totalItems } = useLocation().state || {};
 
   const [isRejectModalOpen, setRejectModalOpen] = useState(false);
+  const [isReturnModalOpen, setReturnModalOpen] = useState(false);
 
   const {
     data: ad,
@@ -91,8 +98,27 @@ const AdDetailPage = () => {
     },
   });
 
+  const returnMutation = useMutation({
+    mutationFn: (variables: { reason: string; comment?: string }) =>
+      returnAdForChanges(adId, variables),
+    onSuccess: () => {
+      toast.success('Ad returned for changes successfully!');
+      queryClient.invalidateQueries({ queryKey: ['ad', adId] });
+      queryClient.invalidateQueries({ queryKey: ['ads'] });
+    },
+    onError: (err) => {
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to return ad for changes.'
+      );
+    },
+  });
+
   const handleRejectSubmit = (reason: string, comment?: string) => {
     rejectMutation.mutate({ reason, comment });
+  };
+
+  const handleReturnSubmit = (reason: string, comment?: string) => {
+    returnMutation.mutate({ reason, comment });
   };
 
   const approveButtonRef = useRef<HTMLButtonElement>(null);
@@ -354,6 +380,8 @@ const AdDetailPage = () => {
             variant="contained"
             color="warning"
             sx={{ flex: { xs: '1 0 100%', sm: 1 } }}
+            onClick={() => setReturnModalOpen(true)}
+            disabled={returnMutation.isPending || ad?.status === 'draft'}
           >
             Вернуть на доработку
           </Button>
@@ -410,6 +438,11 @@ const AdDetailPage = () => {
           open={isRejectModalOpen}
           onClose={() => setRejectModalOpen(false)}
           onSubmit={handleRejectSubmit}
+        />
+        <ReturnAdModal
+          open={isReturnModalOpen}
+          onClose={() => setReturnModalOpen(false)}
+          onSubmit={handleReturnSubmit}
         />
       </Box>
     </AnimatedPage>

@@ -22,7 +22,7 @@ export const DecisionsChart = ({ data }: DecisionsChartProps) => {
   if (!data) return null;
 
   const chartData = Object.entries(data).map(([key, value]) => ({
-    name: key.charAt(0).toUpperCase() + key.slice(1),
+    name: key.charAt(0) + key.slice(1),
     value: Number(value.toFixed(1)),
   }));
 
@@ -45,7 +45,7 @@ export const DecisionsChart = ({ data }: DecisionsChartProps) => {
           {chartData.map((entry, index) => (
             <Cell
               key={`cell-${index}`}
-              fill={COLORS[entry.name.toLowerCase() as keyof typeof COLORS]}
+              fill={COLORS[entry.name as keyof typeof COLORS]}
             />
           ))}
         </Pie>

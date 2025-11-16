@@ -1,4 +1,8 @@
-type Permissions = 'approve_ads' | 'reject_ads' | 'request_changes' | 'view_stats';
+type Permissions =
+  | 'approve_ads'
+  | 'reject_ads'
+  | 'request_changes'
+  | 'view_stats';
 
 export interface Moderator {
   id: number;

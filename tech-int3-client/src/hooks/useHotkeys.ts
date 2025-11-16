@@ -11,7 +11,6 @@ export function useHotkeys(hotkeys: HotkeyConfig[]) {
       }
 
       const target = event.target as HTMLElement;
-      
 
       // prevent firing on input but allow on checkboxes so that it calls on home screen
       // without having to change focus

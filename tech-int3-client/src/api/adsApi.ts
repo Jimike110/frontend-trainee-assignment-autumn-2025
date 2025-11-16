@@ -68,6 +68,28 @@ export const rejectAd = async (id: number, payload: AdPayload): Promise<Ad> => {
 };
 
 /**
+ * Returns a specific ad for changes with a reason and optional comment.
+ * @param id - The ID of the ad to return.
+ * @param payload - The reason and optional comment for the changes.
+ * @returns A promise that resolves to the updated ad object.
+ */
+export const returnAdForChanges = async (
+  id: number,
+  payload: AdPayload
+): Promise<Ad> => {
+  try {
+    const response = await axiosClient.post<Ad>(
+      `/ads/${id}/request-changes`,
+      payload
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to return ad with ID ${id}:`, error);
+    throw new Error('Could not return the advert.');
+  }
+};
+
+/**
  * Approves multiple ads by their IDs.
  * @param ids - An array of ad IDs to approve.
  * @returns A promise that resolves when the operation is complete.

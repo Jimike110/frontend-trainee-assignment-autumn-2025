@@ -9,7 +9,9 @@ interface NewAdsProviderProps {
 
 export const NewAdsProvider = ({ children }: NewAdsProviderProps) => {
   const queryClient = useQueryClient();
-  const [latestAdTimestamp, setLatestAdTimestamp] = useState<string | null>(null);
+  const [latestAdTimestamp, setLatestAdTimestamp] = useState<string | null>(
+    null
+  );
 
   // When false, polling is paused (used while user is navigating / paginating)
   const [isPollingEnabled, setIsPollingEnabled] = useState<boolean>(true);
@@ -33,7 +35,9 @@ export const NewAdsProvider = ({ children }: NewAdsProviderProps) => {
 
     // Reset the count in the query cache and pause polling briefly to avoid
     // immediate re-trigger from the provider side.
-    queryClient.setQueryData(['newAdsCount', latestAdTimestamp], { newCount: 0 });
+    queryClient.setQueryData(['newAdsCount', latestAdTimestamp], {
+      newCount: 0,
+    });
     setIsPollingEnabled(false);
     // Re-enable after a short delay to resume background polling (optional)
     // setTimeout(() => setIsPollingEnabled(true), 1000);
@@ -56,5 +60,9 @@ export const NewAdsProvider = ({ children }: NewAdsProviderProps) => {
     setPollingEnabled,
   };
 
-  return <NewAdsContext.Provider value={contextValue}>{children}</NewAdsContext.Provider>;
+  return (
+    <NewAdsContext.Provider value={contextValue}>
+      {children}
+    </NewAdsContext.Provider>
+  );
 };

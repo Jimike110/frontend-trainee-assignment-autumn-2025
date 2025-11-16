@@ -134,7 +134,7 @@ const AdListPage = () => {
       },
       { replace: true }
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearchTerm, debouncedMinPrice, debouncedMaxPrice]);
 
   useHotkeys([

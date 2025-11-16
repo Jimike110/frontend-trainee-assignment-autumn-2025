@@ -1,4 +1,4 @@
-import { type Category } from "./ads";
+import { type Category } from './ads';
 
 type CategoriesChart = Record<Category, number>;
 

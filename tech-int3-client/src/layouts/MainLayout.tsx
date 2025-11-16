@@ -25,7 +25,7 @@ export const MainLayout = () => {
   const { newAdsCount, triggerRefetch } = useNewAds();
   const location = useLocation();
 
-  const hasFilters = location.search.includes('page=') ;
+  const hasFilters = location.search;
 
   const showLoadNew = newAdsCount > 0 && !hasFilters;
 
@@ -34,20 +34,25 @@ export const MainLayout = () => {
       <QueryProgressBar />
       <Toaster position="top-right" reverseOrder={false} />
       <AppBar component="nav">
-        <Toolbar>
-          <img
-            width={110}
-            src="https://static.tildacdn.com/tild6438-3762-4439-a366-616561343235/Logo-Avito_new_2.svg"
-            alt="Avito Logo"
-            style={{ marginInline: 16 }}
-          />
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
+        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <RouterNavLink
+            to="/"
+            style={{ display: 'flex', alignItems: 'center' }}
           >
-            модерация
-          </Typography>
+            <img
+              width={110}
+              src="https://static.tildacdn.com/tild6438-3762-4439-a366-616561343235/Logo-Avito_new_2.svg"
+              alt="Avito Logo"
+              style={{ marginInline: 16 }}
+            />
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
+            >
+              модерация
+            </Typography>
+          </RouterNavLink>
           <Box>
             {showLoadNew && (
               <Button

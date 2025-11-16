@@ -14,7 +14,7 @@ services:
       context: ./tech-int3-client
     container_name: moderation_client
     ports:
-      - "8080:80"
+      - "9090:90"
     depends_on:
       - server
     restart: unless-stopped

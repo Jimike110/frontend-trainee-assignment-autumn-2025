@@ -2,6 +2,12 @@ import { useEffect, useCallback } from 'react';
 
 export type HotkeyConfig = [string, (event: KeyboardEvent) => void];
 
+/**
+ * A custom hook to declaratively manage global keyboard shortcuts.
+ * It ignores key presses when the user is focused on input fields.
+ * @param hotkeys - An array of tuples, where each tuple is `[key: string, callback: (e: KeyboardEvent) => void]`.
+ *                  Example: `[['a', handleApprove], ['ArrowRight', handleNext]]`
+ */
 export function useHotkeys(hotkeys: HotkeyConfig[]) {
   // Memoize to prevent re-adding/removing the listener on every render
   const handleKeyDown = useCallback(

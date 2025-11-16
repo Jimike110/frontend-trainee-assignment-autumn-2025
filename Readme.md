@@ -1,160 +1,130 @@
-# Тестовое задание для стажёра Frontend (осенняя волна 2025)
-![scheme](https://github.com/avito-tech/tech-internship/blob/main/Tech%20Internships/Frontend/Frontend-trainee-assignment-autumn-2025/schema%20(3).jpg)
+# Avito Moderation Tool
 
-## **Система управления объявлениями для модерации**
+This is a web application developed for the Avito internship test task. It's a simplified version of an internal tool used by moderators to review, approve, or reject user-submitted advertisements.
 
-### **Описание задачи**
-Необходимо разработать веб-приложение для модерации объявлений на платформе Авито. Это упрощённая версия внутренней системы, которую используют модераторы для проверки и управления объявлениями пользователей.
+## Features
 
-### **Бизнес-контекст**
-Ежедневно на Авито публикуются тысячи объявлений, которые должны пройти модерацию перед публикацией. Модераторам нужен удобный инструмент для быстрой проверки объявлений, принятия решений и отслеживания своей эффективности.
+### Core Functionality
 
-### **Технические требования**
-#### **Обязательные:**
-- Node.js v20
-- React v18+
-- react-router-dom для роутинга
-- Использование готового API, расположенного в папке server этого репозитория
-- Исходный код решения должен быть выложен с вашего аккаунта на GitHub с readme-файлом, содержащим инструкцию по запуску проекта и обоснование выбора необязательных технологий
+- **Ad Listing (`/list`):** Displays all advertisements with pagination, advanced filtering (by search, status, category, price), and sorting (by date, price, priority).
+- **Detailed Ad View (`/item/:id`):** Shows complete ad details, including an image gallery, seller information, characteristics, and full moderation history.
+- **Moderation Actions:** Moderators can Approve, Reject (with a required reason), or flag an ad for changes directly from the detail page.
+- **Statistics Dashboard (`/stats`):** Provides an overview of moderator performance with key metrics and charts visualizing activity over different time periods (Today, 7 Days, 30 Days).
 
-#### **Дополнительные (со звёздочкой):**
-- Разрешено использование любой библиотеки UI-компонентов
-- Желательно использование TypeScript
-- Использование ИИ разрешено в переработанном виде. При выявлении ИИ при проверке задания на следующих этапах отбора вам необходимо будет пояснить необходимость его использования и ответить на уточняющие вопросы интервьюера
-- Разрешено использование любых внешних библиотек, в том числе:
-  - Дизайн-система/UI-kit (Material-UI, Ant Design)
-  - Стейт-менеджмент (Redux, MobX, Effector)
-  - Линтер (ESLint)
-  - Prettier
-  - Система сборки (Webpack, Vite)
-  - Библиотека для работы с асинхронными HTTP-запросами (React Query, Axios)
-- Возможность запустить проект в контейнеризированной docker-среде, ещё лучше — сервер и клиент запускаются при помощи docker compose
-- Прерывание (отмена/прекращение) запросов при переходе со страницы на страницу
-- Покрытие кода юнит-тестами
-- Комментарии к коду и документация
+### Advanced Features Implemented (⭐)
 
-### **Функциональные требования**
-#### **1. Главная страница — Список объявлений (/list)**
-- Отображение списка объявлений в виде карточек
-- Каждая карточка содержит:
-  - Изображение товара (можно использовать placeholder-изображения)
-  - Название объявления
-  - Цена
-  - Категория
-  - Дата создания
-  - Статус (на модерации / одобрено / отклонено)
-  - Индикатор приоритета (обычный / срочный)
+- **Hotkeys:** Keyboard shortcuts for efficient moderation (`'a'` to approve, `'d'` to reject, arrow keys for navigation, `'/'` to focus search).
+- **Bulk Operations:** Users can select multiple ads on the list page to approve or reject them in a single batch.
+- **Advanced Filtering & URL Sync:** The application state (filters, sorting, pagination) is synchronized with the URL, making the view shareable and bookmarkable. Users can also save and load their favorite filter sets using `localStorage`.
+- **Dark Theme:** A persistent dark mode toggle is available for user comfort, with the preference saved in `localStorage`.
+- **Data Export:** Statistics can be exported as a **CSV** file or a **PDF** report.
+- **Real-time Updates:** The application polls the server for changes:
+  - A notification button appears in the header when new ads are available, which loads them on click.
+  - An ad's status will update in real-time on the detail page if it's moderated elsewhere.
+- **Animations:** Subtle animations for page transitions, card loading, and a global progress bar for background data fetching provide a smooth and modern user experience.
+- **Containerization:** The entire full-stack application can be built and run using **Docker and Docker Compose**, ensuring a consistent and reproducible environment for development and production.
+- **Request Cancellation:** By leveraging TanStack React Query, in-flight API requests are automatically aborted when their component unmounts, saving bandwidth and resources.
+- **Unit Tests:** Key components, hooks, and utility functions are covered by unit tests written with **Vitest and React Testing Library**.
 
-**Фильтрация и поиск:**
-- Фильтр по статусу (множественный выбор)
-- Фильтр по категории
-- Фильтр по диапазону цен
-- Поиск по названию объявления
-- Сброс всех фильтров
+## Technology Choices
 
-**Сортировка:**
-- По дате создания (новые/старые)
-- По цене (возрастание/убывание)
-- По приоритету
+This section outlines the key libraries and technologies used in the project and the reasoning behind their selection.
 
-**Пагинация:**
-- По 10 объявлений на страницу
-- Навигация между страницами
-- Отображение общего количества объявлений
+- **Framework:** **React (v19.2.0) with Vite**
 
-#### **2. Страница детального просмотра объявления (/item/:id)**
-При клике на карточку открывается детальная страница объявления.
+  - **Reasoning:** Chosen as per the task requirements. Vite provides an extremely fast development server and optimized build process, significantly improving developer experience.
 
-**Информация об объявлении:**
-- Галерея изображений (минимум 3 изображения)
-- Полное описание
-- Характеристики товара (в виде таблицы ключ-значение)
-- Информация о продавце:
-  - Имя
-  - Рейтинг
-  - Количество объявлений
-  - Дата регистрации
+- **Language:** **TypeScript**
 
-**История модерации:**
-- Список всех действий с объявлением
-- Кто проверял (имя модератора)
-- Когда (дата и время)
-- Какое решение принял
-- Комментарий (если был)
+  - **Reasoning:** Adds static typing to JavaScript, which helps catch errors during development. It improves code quality, readability, and maintainability, a standard for modern web applications.
 
-**Панель действий модератора:**
-- Кнопка «Одобрить» (зелёная)
-- Кнопка «Отклонить» (красная)
-- Кнопка «Вернуть на доработку» (жёлтая)
+- **UI Components:** **Material--UI (MUI)**
 
-**При отклонении:**
-- Обязательное поле для указания причины
-- Быстрые шаблоны причин:
-  - Запрещённый товар
-  - Неверная категория
-  - Некорректное описание
-  - Проблемы с фото
-  - Подозрение на мошенничество
-  - Другое (с полем ввода)
+  - **Reasoning:** A comprehensive component library that accelerates development by providing a wide range of pre-built, accessible, and themeable components.
 
-**Навигация:**
-- Кнопка «Назад к списку»
-- Кнопки «Предыдущее» / «Следующее» объявление (для быстрой модерации)
+- **Data Fetching & State Management:** **TanStack React Query**
 
-#### **3. Страница статистики модератора (/stats)**
+  - **Reasoning:** Chosen for its powerful out-of-the-box capabilities:
+    - **Server State Caching:** Intelligently caches API data, preventing redundant network requests.
+    - **Automatic Background Refetching:** The real-time update features were implemented effortlessly using `refetchInterval`.
+    - **Request Cancellation:** Automatically aborts obsolete network requests when components unmount, which is a critical performance optimization.
+    - **Mutation and Invalidation:** Simplifies data mutations and provides a declarative way to keep the UI in sync with the backend.
 
-**Общая статистика:**
-- Карточки с метриками:
-  - Всего проверено объявлений (за сегодня/неделю/месяц)
-  - Процент одобренных
-  - Процент отклоненных
-  - Среднее время на проверку одного объявления
-Графики:
-- График активности по дням за последнюю неделю (столбчатая диаграмма)
-- Круговая диаграмма распределения решений (одобрено/отклонено/на доработку)
-- График по категориям проверенных объявлений
+- **Routing:** **React Router DOM**
 
-### **Дополнительные функциональные возможности (со звёздочкой)**
-**1. Горячие клавиши:**
-- `A` - одобрить объявление
-- `D` - отклонить объявление
-- `→` - следующее объявление
-- `←` - предыдущее объявление
-- `/` - фокус на поиск
+  - **Reasoning:** The standard library for routing. The project uses the URL as the "single source of truth" for filters and pagination via the `useSearchParams` hook, allowing for shareable URLs.
 
-**2. Bulk-операции:**
-- Чекбоксы для выбора нескольких объявлений
-- Массовое одобрение/отклонение
-- Счетчик выбранных объявлений
+- **Animations:** **Framer Motion**
 
-**3. Продвинутая фильтрация:**
-- Сохранение наборов фильтров
-- URL-синхронизация фильтров (можно поделиться ссылкой)
+  - **Reasoning:** A declarative and powerful animation library used for smooth page transitions and card animations, providing a polished user experience.
 
-**4. Тёмная тема:**
-- Переключатель темы
-- Сохранение выбора в localStorage
+- **Testing:** **Vitest & React Testing Library**
+  - **Reasoning:** A modern, Vite-native test runner combined with a testing philosophy that encourages testing application behavior from a user's perspective, leading to more resilient tests.
 
-**5. Экспорт данных:**
-- Экспорт статистики в CSV
-- Генерация PDF-отчёта
+## How to Run the Project
 
-**6. Real-time обновления:**
-- Автообновление списка новых объявлений
-- Счётчик новых объявлений
-- Статус объявления
+### Prerequisites
 
-**7. Анимации:**
-- Плавные переходы между страницами
-- Анимация появления карточек
-- Progress bar для загрузки
+- Node.js (v20.19+)
+- npm
+- Docker and Docker Compose (for containerized setup)
 
-**8. Фильтр по периоду на странице статистики модератора /stats:**
-- Сегодня
-- Последние 7 дней
-- Последние 30 дней
+### Method 1: Running with Docker (Recommended)
 
-### **Что НЕ нужно делать**
-- Реализовывать авторизацию/регистрацию (считаем, что пользователь уже авторизован)
-- Реализовывать загрузку реальных изображений
-- Делать интеграцию с внешними сервисами
+This is the simplest way to run the full-stack application, as it manages both the client and server.
+
+1.  **Clone the repository.**
+2.  Navigate to the project's root directory (the one containing `docker-compose.yml`).
+3.  Build and start the containers in detached mode:
+    ```bash
+    docker-compose up --build -d
+    ```
+4.  The application will be available at **`http://localhost:9090`**.
+5.  To stop the application, run:
+    ```bash
+    docker-compose down
+    ```
+
+### Method 2: Running Locally (Manual)
+
+If you prefer to run the client and server separately without Docker.
+
+**Server:**
+
+1.  Navigate to the `tech-int3-server` directory.
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Start the server:
+    ```bash
+    npm start
+    ```
+4.  The server will be running on `http://localhost:3001`.
+
+**Client:**
+
+1.  In a new terminal, navigate to the `tech-int3-client` directory.
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Start the development server:
+    ```bash
+    npm run dev
+    ```
+4.  The client will be available at `http://localhost:5173`.
+
+### Running Tests
+
+To run the unit tests for the client application:
+
+1.  Navigate to the `tech-int3-client` directory.
+2.  Run the tests:
+    ```bash
+    npm test
+    ```
+3.  To run tests in the interactive UI mode:
+    ```bash
+    npm run test:ui
+    ```

@@ -1,5 +1,11 @@
 import { useState, type ReactNode } from 'react';
-import { Box, IconButton, type SxProps, type Theme } from '@mui/material';
+import {
+  Box,
+  IconButton,
+  useTheme,
+  type SxProps,
+  type Theme,
+} from '@mui/material';
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 
 interface CarouselProps {
@@ -9,6 +15,8 @@ interface CarouselProps {
 
 const Carousel = ({ children, sx = {} }: CarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
+
+  const theme = useTheme();
 
   const next = (): void => {
     setCurrentIndex((prevIndex: number) =>
@@ -49,8 +57,8 @@ const Carousel = ({ children, sx = {} }: CarouselProps) => {
               left: 8,
               top: '50%',
               transform: 'translateY(-50%)',
-              backgroundColor: 'rgba(255,255,255,0.8)',
-              '&:hover': { backgroundColor: 'rgba(255,255,255,0.9)' },
+              backgroundColor: theme.palette.background.paper,
+              '&:hover': { backgroundColor: theme.palette.background.default },
             }}
           >
             <ChevronLeft />
@@ -62,8 +70,8 @@ const Carousel = ({ children, sx = {} }: CarouselProps) => {
               right: 8,
               top: '50%',
               transform: 'translateY(-50%)',
-              backgroundColor: 'rgba(255,255,255,0.8)',
-              '&:hover': { backgroundColor: 'rgba(255,255,255,0.9)' },
+              backgroundColor: theme.palette.background.paper,
+              '&:hover': { backgroundColor: theme.palette.background.default },
             }}
           >
             <ChevronRight />
